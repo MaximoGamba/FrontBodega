@@ -1,0 +1,29 @@
+.container {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  font-family: Arial, sans-serif;
+}
+
+.container h1 {
+  margin-bottom: 1.5rem;
+}
+
+.todo-item {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+
+.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.card-item {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 0.75rem;
+}
