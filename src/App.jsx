@@ -1,8 +1,41 @@
-import "./App.css";
+import { Route, Routes } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import Home from "./views/Home";
+import Products from "./views/Products";
+import ProductDetail from "./views/ProductDetail";
+import Cart from "./views/Cart";
+import Checkout from "./views/Checkout";
+import Admin from "./views/Admin";
+import Login from "./views/Login";
+import Registro from "./views/Registro";
+import Perfil from "./views/Perfil";
+import Sale from "./views/Sale";
+import Historia from "./views/Historia";
+import Contacto from "./views/Contacto";
 
 function App() {
-  return <Home />;
+  return (
+    <>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/productos" element={<Products />} />
+        <Route path="/productos/:id" element={<ProductDetail />} />
+        <Route path="/carrito" element={<Cart />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/registro" element={<Registro />} />
+        <Route path="/perfil" element={<Perfil />} />
+        <Route path="/sale" element={<Sale />} />
+        <Route path="/historia" element={<Historia />} />
+        <Route path="/contacto" element={<Contacto />} />
+        <Route path="*" element={<h1>404 - Página no encontrada</h1>} />
+      </Routes>
+      <Footer />
+    </>
+  );
 }
 
 export default App;
