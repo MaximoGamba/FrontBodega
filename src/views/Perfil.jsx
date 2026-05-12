@@ -50,7 +50,7 @@ const CampoEditable = ({ label, valor, onGuardar }) => {
     }
   };
 
-  const cancelar = () => {
+  const cancelar = () => { 
     setInput(valor || "");
     setEditando(false);
   };
@@ -66,7 +66,7 @@ const CampoEditable = ({ label, valor, onGuardar }) => {
           <input
             autoFocus
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value)} 
             style={{ width: "100%", border: "1px solid var(--border)", padding: "10px 12px", fontSize: "14px", fontFamily: "var(--font-sans)", outline: "none", boxSizing: "border-box", marginBottom: "10px" }}
           />
           <div style={{ display: "flex", gap: "8px" }}>
@@ -107,16 +107,16 @@ const CampoEditable = ({ label, valor, onGuardar }) => {
 };
 
 const Perfil = () => {
-  const { usuario, logout, actualizarPerfil } = useAuth();
-  const navigate = useNavigate();
+  const { usuario, logout, actualizarPerfil } = useAuth(); //useAuth es un hook que se usa para obtener el usuario y la funcion para actualizar el perfil
+  const navigate = useNavigate(); //useNavigate es un hook que se usa para navegar entre las paginas
 
   const handleLogout = () => {
-    logout();
+    logout(); //logout es la funcion que se usa para cerrar la sesion
     navigate("/");
   };
 
   useEffect(() => {
-    if (!usuario) navigate("/login");
+    if (!usuario) navigate("/login"); //navigate es la funcion que se usa para navegar entre las paginas
   }, [usuario]);
 
   if (!usuario) return null;
@@ -172,12 +172,12 @@ const Perfil = () => {
             Historial de pedidos
           </h2>
 
-          {pedidosMock.length === 0 ? (
+          {pedidosMock.length === 0 ? ( //pedidosMock es un array de pedidos
             <p style={{ color: "var(--gray)", fontSize: "14px" }}>
               Todavía no realizaste ningún pedido.
             </p>
           ) : (
-            pedidosMock.map((pedido) => (
+            pedidosMock.map((pedido) => ( //map es un metodo que se usa para recorrer un array y devolver un nuevo array con los valores de la funcion
               <div key={pedido.id} style={{ border: "1px solid var(--border)", padding: "24px", marginBottom: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                   <div>

@@ -3,29 +3,39 @@ import { productosIniciales, colores, cepas } from "../data/productos";
 import ProductCard from "../components/ProductCard";
 import { LuTruck, LuCreditCard, LuMessageCircle } from "react-icons/lu";
 
+/** Imagen de fondo del hero (cualquier URL pública: Unsplash, tu CDN, etc.) */
+const HERO_FONDO_URL =
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuD5ampYtcoDLkOUDo3CxdWHZLlIg0DxKeabkqYFWQlBDsOh1Jqghwq21W8xmrCDbBYznbZhEx8ZboYYuad2bnvy5V66tLEIJzd1w3XvA6dFn-hGGkUyfa1rV1OLKfXW_HUxfynVxVXcpQBPfefeSn3LGSQc5u9iCT7kh_NX7UKE3BQWlgHNa3XYhfsH3jFB-tnsFMT3_rL9e7fXXmIBtl1stDhQ2atrrGLFYTyqVOk8C9VXDm9kHRW6aqrqG3KhDl6Wu5SPr7w_rxE";
+
 const destacados = productosIniciales.filter((p) => p.discountPercent > 0).slice(0, 3);
 
 const Home = () => {
   return (
     <div>
 
-      {/* Hero */}
-      <section style={{
-        background: "var(--secondary)",
-        padding: "100px 40px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        textAlign: "center",
-        borderBottom: "1px solid var(--border)",
-      }}>
-        <p style={{ fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", color: "var(--primary)", marginBottom: "20px" }}>
+      {/* Hero — fondo por URL: capa oscura encima para que el texto se lea bien */}
+      <section
+        style={{
+          padding: "100px 40px",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          borderBottom: "1px solid var(--border)",
+          backgroundColor: "var(--neutral)",
+          backgroundImage: `linear-gradient(rgba(26, 26, 26, 0.65), rgba(26, 26, 26, 0.5)), url(${HERO_FONDO_URL})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        <p style={{ fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", color: "var(--secondary)", marginBottom: "20px", opacity: 0.95 }}>
           Bienvenido a ApiBodega
         </p>
-        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "56px", fontWeight: "400", maxWidth: "700px", lineHeight: "1.2", marginBottom: "24px", color: "var(--neutral)" }}>
+        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "56px", fontWeight: "400", maxWidth: "700px", lineHeight: "1.2", marginBottom: "24px", color: "var(--white)" }}>
           Vinos seleccionados para cada ocasión
         </h1>
-        <p style={{ fontSize: "16px", color: "var(--gray)", maxWidth: "480px", lineHeight: "1.7", marginBottom: "40px" }}>
+        <p style={{ fontSize: "16px", color: "rgba(255,255,255,0.85)", maxWidth: "480px", lineHeight: "1.7", marginBottom: "40px" }}>
           Explorá nuestra colección de vinos cuidadosamente seleccionados de las mejores bodegas argentinas.
         </p>
         <Link
@@ -45,9 +55,9 @@ const Home = () => {
           </Link>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px" }}>
-          {destacados.map((producto) => (
+          {destacados.map((producto) => ( //map es un metodo que se usa para recorrer un array y devolver un nuevo array con los valores de la funcion
             <ProductCard
-              key={producto.id}
+              key={producto.id} //key es un atributo que se usa para identificar un elemento en el array
               producto={producto}
               colores={colores}
               cepas={cepas}

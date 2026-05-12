@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { LuSearch, LuUser, LuShoppingBag } from "react-icons/lu";
+import logoEmpresa from "../assets/Logo.png";
 
 const Navbar = () => {
   const { carrito } = useCart();
@@ -34,8 +35,12 @@ const Navbar = () => {
 
   return (
     <nav className="navbar navbar-expand-lg" style={{ borderBottom: "1px solid #e0d9ce", padding: "16px 40px", position: "sticky", top: 0, background: "#f5f0e8", zIndex: 100 }}>
-      <Link to="/" className="navbar-brand" style={{ fontFamily: "var(--font-serif)", fontSize: "22px", fontWeight: "700", color: "var(--primary)" }}>
-        ApiBodega
+      <Link to="/" className="navbar-brand d-flex align-items-center" style={{ paddingTop: 0, paddingBottom: 0 }}>
+        <img
+          src={logoEmpresa}
+          alt="ApiBodega — Inicio"
+          style={{ height: "60px", width: "auto", maxWidth: "220px", objectFit: "contain", display: "block" }}
+        />
       </Link>
 
       <div className="collapse navbar-collapse justify-content-center">

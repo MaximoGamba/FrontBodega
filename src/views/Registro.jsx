@@ -2,6 +2,10 @@ import { useState } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
+/** Fondo de la página (cambiá por tu URL) */
+const REGISTRO_FONDO_URL =
+  "https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?auto=format&fit=crop&w=1920&q=80";
+
 const inputStyle = {
   width: "100%",
   border: "1px solid var(--border)",
@@ -44,8 +48,30 @@ const Registro = () => {
   };
 
   return (
-    <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
-      <div style={{ width: "100%", maxWidth: "420px" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px 24px",
+        backgroundColor: "var(--neutral)",
+        backgroundImage: `linear-gradient(rgba(26, 26, 26, 0.58), rgba(26, 26, 26, 0.52)), url(${REGISTRO_FONDO_URL})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: "420px",
+          background: "var(--white)",
+          padding: "40px 32px",
+          border: "1px solid var(--border)",
+          boxShadow: "0 12px 40px rgba(0, 0, 0, 0.15)",
+        }}
+      >
         <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "32px", textAlign: "center", marginBottom: "8px" }}>
           Crear cuenta
         </h1>

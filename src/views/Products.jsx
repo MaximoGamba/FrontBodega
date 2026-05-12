@@ -4,16 +4,16 @@ import { productosIniciales, colores, cepas, azucares, crianzas, elaboraciones, 
 import ProductCard from "../components/ProductCard";
 
 const Products = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams(); //useSearchParams es un hook que se usa para obtener los parametros de la url
   const busquedaRaw = (searchParams.get("q") || "").trim();
   const tokensBusqueda = busquedaRaw
     ? busquedaRaw
-        .toLowerCase()
+        .toLowerCase() //toLowerCase es un metodo que se usa para convertir el texto a minusculas
         .split(/\s+/)
         .filter(Boolean)
     : [];
 
-  const [productos] = useState(productosIniciales);
+  const [productos] = useState(productosIniciales); //productosIniciales es un array de productos
   const [filtros, setFiltros] = useState({
     colorId: [],
     cepaId: [],
@@ -25,7 +25,7 @@ const Products = () => {
     precioMax: 10000,
   });
 
-  const handleCheckbox = (campo, valor) => {
+  const handleCheckbox = (campo, valor) => { //handleCheckbox es la funcion que se usa para manejar el checkbox
     const actual = filtros[campo];
     const num = Number(valor);
     if (actual.includes(num)) {
@@ -47,7 +47,7 @@ const Products = () => {
     });
   };
 
-  const productosFiltrados = productos.filter((p) => {
+  const productosFiltrados = productos.filter((p) => { 
     if (tokensBusqueda.length) {
       const cepaNombre = cepas.find((c) => c.id === p.cepaId)?.nombre ?? "";
       const texto = `${p.name} ${p.winery} ${p.year} ${cepaNombre}`.toLowerCase();
@@ -84,7 +84,7 @@ const Products = () => {
             <p style={{ fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "12px", fontWeight: "600" }}>
               {label}
             </p>
-            {opciones.map((op) => (
+            {opciones.map((op) => ( 
               <label key={op.id} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", cursor: "pointer", fontSize: "14px" }}>
                 <input
                   type="checkbox"
