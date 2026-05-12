@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import { LuSearch, LuUser, LuShoppingBag } from "react-icons/lu";
@@ -6,7 +7,30 @@ import { LuSearch, LuUser, LuShoppingBag } from "react-icons/lu";
 const Navbar = () => {
   const { carrito } = useCart();
   const { usuario } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const qEnUrl = searchParams.get("q") ?? "";
+  const [query, setQuery] = useState("");
   const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+
+  useEffect(() => {
+    if (location.pathname === "/productos") {
+      setQuery(qEnUrl);
+    } else {
+      setQuery("");
+    }
+  }, [location.pathname, qEnUrl]);
+
+  const handleBuscar = (e) => {
+    e.preventDefault();
+    const trimmed = query.trim();
+    if (trimmed) {
+      navigate(`/productos?q=${encodeURIComponent(trimmed)}`);
+    } else {
+      navigate("/productos");
+    }
+  };
 
   return (
     <nav className="navbar navbar-expand-lg" style={{ borderBottom: "1px solid #e0d9ce", padding: "16px 40px", position: "sticky", top: 0, background: "#f5f0e8", zIndex: 100 }}>
@@ -40,7 +64,28 @@ const Navbar = () => {
       </div>
 
       <div className="d-flex align-items-center gap-3">
-        <LuSearch size={20} style={{ cursor: "pointer", color: "var(--neutral)" }} />
+        <form onSubmit={handleBuscar} className="d-flex align-items-center gap-1" style={{ borderBottom: "1px solid var(--border)", paddingBottom: "4px", minWidth: "160px", maxWidth: "240px" }}>
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Buscar vinos..."
+            aria-label="Buscar en el catálogo"
+            style={{
+              flex: 1,
+              minWidth: 0,
+              border: "none",
+              background: "transparent",
+              fontSize: "13px",
+              outline: "none",
+              fontFamily: "var(--font-sans)",
+              color: "var(--neutral)",
+            }}
+          />
+          <button type="submit" aria-label="Buscar" style={{ border: "none", background: "none", padding: 0, display: "flex", color: "var(--neutral)", cursor: "pointer" }}>
+            <LuSearch size={20} />
+          </button>
+        </form>
         <Link to={usuario ? "/perfil" : "/login"} state={!usuario ? { from: "/perfil" } : undefined} style={{ color: "var(--neutral)" }}>
           <LuUser size={20} />
         </Link>

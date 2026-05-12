@@ -21,22 +21,22 @@ const labelStyle = {
   marginBottom: "6px",
 };
 
-const Login = () => {
-  const { login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const from = location.state?.from || "/";
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [error, setError] = useState("");
+const Login = () => { //Login es el componente que se encarga de la pagina de login
+  const { login } = useAuth(); //login es el estado del usuario logueado
+  const navigate = useNavigate(); //navigate es la funcion que se encarga de navegar entre las paginas
+  const location = useLocation(); //location es la funcion que se encarga de obtener la location de la pagina
+  const from = location.state?.from || "/"; //from es la location de la pagina anterior
+  const [form, setForm] = useState({ email: "", password: "" }); //form es el estado del formulario
+  const [error, setError] = useState(""); //error es el estado del error
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!form.email || !form.password) {
+  const handleSubmit = (e) => { //e es el evento que se disparo el formulario
+    e.preventDefault(); //evitar que se recargue la pagina
+    if (!form.email || !form.password) { //si el email o la contraseña no estan completos, se setea el error
       setError("Completá todos los campos.");
       return;
     }
-    login(form.email, form.password);
-    navigate(from);
+    login(form.email, form.password); //login es la funcion que se encarga de loguear al usuario
+    navigate(from); //navigate es la funcion que se encarga de navegar entre las paginas
   };
 
   return (
@@ -49,14 +49,14 @@ const Login = () => {
           Accedé a tu cuenta para gestionar tus pedidos
         </p>
 
-        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}> //onSubmit es el evento que se disparo el formulario
           <div>
-            <label style={labelStyle}>Email</label>
+            <label style={labelStyle}>Email</label> //label es el label del formulario
             <input
-              style={inputStyle}
+              style={inputStyle} //inputStyle es el estilo del input
               type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              value={form.email} //value es el valor del input
+              onChange={(e) => setForm({ ...form, email: e.target.value })} //onChange es el evento que se disparo el input
             />
           </div>
           <div>
