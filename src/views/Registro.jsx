@@ -26,12 +26,12 @@ const Registro = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || "/";
-  const [form, setForm] = useState({ firstname: "", lastname: "", username: "", email: "", password: "", confirmar: "" });
+  const [form, setForm] = useState({ firstname: "", lastname: "", email: "", password: "", confirmar: "" });
   const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.firstname || !form.lastname || !form.username || !form.email || !form.password || !form.confirmar) {
+    if (!form.firstname || !form.lastname || !form.email || !form.password || !form.confirmar) {
       setError("Completá todos los campos.");
       return;
     }
@@ -39,7 +39,7 @@ const Registro = () => {
       setError("Las contraseñas no coinciden.");
       return;
     }
-    registrar(form.firstname, form.lastname, form.username, form.email, form.password)
+    registrar(form.firstname, form.lastname, form.email, form.email, form.password)
       .then((ok) => {
         if (ok) navigate(from);
         else setError("Error al registrarse. Intentá de nuevo.");
@@ -71,14 +71,6 @@ const Registro = () => {
               style={inputStyle}
               value={form.lastname}
               onChange={(e) => setForm({ ...form, lastname: e.target.value })}
-            />
-          </div>
-          <div>
-            <label style={labelStyle}>Usuario</label>
-            <input
-              style={inputStyle}
-              value={form.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
             />
           </div>
           <div>

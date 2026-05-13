@@ -28,7 +28,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
         <Route path="/perfil" element={<Perfil />} />
-        <Route path="/sale" element={<Sale />} />
+        <Route path="/ofertas" element={<Sale />} />
         <Route path="/historia" element={<Historia />} />
         <Route path="/contacto" element={<Contacto />} />
         <Route path="*" element={<h1>404 - Página no encontrada</h1>} />

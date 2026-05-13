@@ -1,66 +1,49 @@
 import { createContext, useContext, useState } from "react";
 
-const URL = "http://localhost:4002";
 const AuthContext = createContext();
+
+const USERS_KEY = "usuarios_registrados";
+
+const getUsuarios = () => {
+  try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; }
+  catch { return []; }
+};
 
 export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split(".")[1]));
-      return { username: payload.sub, rol: payload.role?.toLowerCase() };
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(localStorage.getItem("usuario_sesion")) || null; }
+    catch { return null; }
   });
 
-  const login = (username, password) => {
-    return fetch(`${URL}/api/v1/auth/authenticate`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Credenciales incorrectas");
-        return response.json();
-      })
-      .then((data) => {
-        localStorage.setItem("token", data.accessToken);
-        const payload = JSON.parse(atob(data.accessToken.split(".")[1]));
-        setUsuario({ username: payload.sub, rol: payload.role?.toLowerCase() });
-        return true;
-      })
-      .catch((error) => {
-        console.error(error.message);
-        return false;
-      });
+  const login = (email, password) => {
+    const usuarios = getUsuarios();
+    const encontrado = usuarios.find(
+      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
+    );
+    if (encontrado) {
+      const sesion = { email: encontrado.email, nombre: encontrado.firstname, rol: encontrado.rol || "user" };
+      localStorage.setItem("usuario_sesion", JSON.stringify(sesion));
+      setUsuario(sesion);
+      return Promise.resolve(true);
+    }
+    return Promise.resolve(false);
   };
 
-  const registrar = (firstname, lastname, username, email, password) => {
-    return fetch(`${URL}/api/v1/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ firstname, lastname, username, email, password, role: "USER" }),
-    })
-      .then((response) => {
-        if (!response.ok) throw new Error("Error al registrarse");
-        return response.json();
-      })
-      .then((data) => {
-        localStorage.setItem("token", data.accessToken);
-        const payload = JSON.parse(atob(data.accessToken.split(".")[1]));
-        setUsuario({ username: payload.sub, rol: payload.role?.toLowerCase() });
-        return true;
-      })
-      .catch((error) => {
-        console.error(error.message);
-        return false;
-      });
+  const registrar = (firstname, lastname, email, _username, password) => {
+    const usuarios = getUsuarios();
+    if (usuarios.find((u) => u.email.toLowerCase() === email.toLowerCase())) {
+      return Promise.resolve(false);
+    }
+    const nuevo = { firstname, lastname, email, password, rol: "user" };
+    localStorage.setItem(USERS_KEY, JSON.stringify([...usuarios, nuevo]));
+    const sesion = { email: nuevo.email, nombre: nuevo.firstname, rol: "user" };
+    localStorage.setItem("usuario_sesion", JSON.stringify(sesion));
+    setUsuario(sesion);
+    return Promise.resolve(true);
   };
 
   const logout = () => {
-    localStorage.removeItem("token");
+    localStorage.removeItem("usuario_sesion");
     setUsuario(null);
   };
 

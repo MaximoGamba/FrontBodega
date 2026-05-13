@@ -45,7 +45,7 @@ const Navbar = () => {
             </Link>
           </li>
           <li className="nav-item">
-            <Link to="/sale" className="nav-link" style={{ fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--neutral)" }}>
+            <Link to="/ofertas" className="nav-link" style={{ fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--neutral)" }}>
               Ofertas
             </Link>
           </li>

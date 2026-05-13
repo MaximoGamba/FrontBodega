@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 const btnCantidad = {
   width: "28px",
   height: "28px",
@@ -20,16 +22,20 @@ const CartItem = ({ item, onCambiarCantidad, onEliminar }) => {
     <div
       style={{ display: "grid", gridTemplateColumns: "100px 1fr auto", gap: "20px", alignItems: "center", padding: "20px 0", borderBottom: "1px solid var(--border)" }}
     >
-      <img
-        src={item.imagen}
-        alt={item.name}
-        style={{ width: "100px", height: "130px", objectFit: "cover" }}
-      />
+      <Link to={`/productos/${item.id}`}>
+        <img
+          src={item.imagen}
+          alt={item.name}
+          style={{ width: "100px", height: "130px", objectFit: "cover" }}
+        />
+      </Link>
 
       <div>
-        <p style={{ fontFamily: "var(--font-serif)", fontSize: "17px", marginBottom: "4px" }}>
-          {item.name}
-        </p>
+        <Link to={`/productos/${item.id}`} style={{ textDecoration: "none", color: "inherit" }}>
+          <p style={{ fontFamily: "var(--font-serif)", fontSize: "17px", marginBottom: "4px" }}>
+            {item.name}
+          </p>
+        </Link>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <button onClick={() => onCambiarCantidad(item.id, -1)} style={btnCantidad}>−</button>
