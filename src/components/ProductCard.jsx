@@ -1,8 +1,11 @@
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 
 const ProductCard = ({ producto, colores, cepas }) => {
   const { carrito, setCarrito } = useCart();
+  const { usuario } = useAuth();
+  const esAdmin = usuario?.rol === "admin";
 
   const color = colores.find((c) => c.id === producto.colorId)?.nombre || "";
   const cepa = cepas.find((c) => c.id === producto.cepaId)?.nombre || "";
@@ -57,7 +60,7 @@ const ProductCard = ({ producto, colores, cepas }) => {
           ${precioFinal.toLocaleString()}
         </p>
       </Link>
-      {producto.stock > 0 && (
+      {producto.stock > 0 && !esAdmin && (
         <button onClick={agregarAlCarrito} style={{ marginTop: "8px", width: "100%", background: "var(--primary)", color: "white", border: "none", padding: "10px", fontSize: "12px", letterSpacing: "1px", textTransform: "uppercase", cursor: "pointer" }}>
           Agregar
         </button>

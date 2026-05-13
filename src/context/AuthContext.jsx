@@ -1,56 +1,71 @@
 import { createContext, useContext, useState } from "react";
 
+const URL = "http://localhost:4002";
 const AuthContext = createContext();
-
-const STORAGE_KEY = "bodega_usuarios";
-const SESSION_KEY = "bodega_sesion";
-
-const getUsuarios = () => JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
-const saveUsuarios = (usuarios) => localStorage.setItem(STORAGE_KEY, JSON.stringify(usuarios));
 
 export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(() => {
-    const sesion = localStorage.getItem(SESSION_KEY);
-    if (!sesion) return null;
-    const usuarios = getUsuarios();
-    return usuarios[sesion] || null;
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return { username: payload.sub, rol: payload.role?.toLowerCase() };
+    } catch {
+      return null;
+    }
   });
 
-  const login = (email, password) => {
-    const usuarios = getUsuarios();
-    if (!usuarios[email]) {
-      usuarios[email] = { email, nombre: email.split("@")[0], telefono: "", direccion: "" };
-      saveUsuarios(usuarios);
-    }
-    localStorage.setItem(SESSION_KEY, email);
-    setUsuario(usuarios[email]);
-    return true;
+  const login = (username, password) => {
+    return fetch(`${URL}/api/v1/auth/authenticate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Credenciales incorrectas");
+        return response.json();
+      })
+      .then((data) => {
+        localStorage.setItem("token", data.accessToken);
+        const payload = JSON.parse(atob(data.accessToken.split(".")[1]));
+        setUsuario({ username: payload.sub, rol: payload.role?.toLowerCase() });
+        return true;
+      })
+      .catch((error) => {
+        console.error(error.message);
+        return false;
+      });
   };
 
-  const registrar = (nombre, email, password) => {
-    const usuarios = getUsuarios();
-    usuarios[email] = { email, nombre, telefono: "", direccion: "" };
-    saveUsuarios(usuarios);
-    localStorage.setItem(SESSION_KEY, email);
-    setUsuario(usuarios[email]);
-    return true;
-  };
-
-  const actualizarPerfil = (datos) => {
-    const usuarios = getUsuarios();
-    const actualizado = { ...usuarios[usuario.email], ...datos };
-    usuarios[usuario.email] = actualizado;
-    saveUsuarios(usuarios);
-    setUsuario(actualizado);
+  const registrar = (firstname, lastname, username, email, password) => {
+    return fetch(`${URL}/api/v1/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ firstname, lastname, username, email, password, role: "USER" }),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error("Error al registrarse");
+        return response.json();
+      })
+      .then((data) => {
+        localStorage.setItem("token", data.accessToken);
+        const payload = JSON.parse(atob(data.accessToken.split(".")[1]));
+        setUsuario({ username: payload.sub, rol: payload.role?.toLowerCase() });
+        return true;
+      })
+      .catch((error) => {
+        console.error(error.message);
+        return false;
+      });
   };
 
   const logout = () => {
-    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem("token");
     setUsuario(null);
   };
 
   return (
-    <AuthContext.Provider value={{ usuario, login, registrar, logout, actualizarPerfil }}>
+    <AuthContext.Provider value={{ usuario, login, registrar, logout }}>
       {children}
     </AuthContext.Provider>
   );

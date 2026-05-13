@@ -2,13 +2,18 @@ import { useParams, Link } from "react-router-dom";
 import { useState } from "react";
 import { productosIniciales, colores, cepas, azucares, crianzas, elaboraciones, medidas } from "../data/productos";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
+import ProductCard from "../components/ProductCard";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const { carrito, setCarrito } = useCart();
+  const { usuario } = useAuth();
+  const productos = productosIniciales;
+  const esAdmin = usuario?.rol === "admin";
   const [cantidad, setCantidad] = useState(1);
 
-  const producto = productosIniciales.find((p) => p.id === Number(id));
+  const producto = productos.find((p) => p.id === Number(id));
 
   if (!producto) {
     return (
@@ -121,40 +126,51 @@ const ProductDetail = () => {
           </div>
 
           {/* Cantidad + agregar */}
-          {producto.stock > 0 ? (
-            <div>
-              <p style={{ fontSize: "11px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--gray)", marginBottom: "10px" }}>
-                Cantidad
-              </p>
-              <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
+          {!esAdmin && (
+            producto.stock > 0 ? (
+              <div>
+                <p style={{ fontSize: "11px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--gray)", marginBottom: "10px" }}>
+                  Cantidad
+                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
+                  <button onClick={() => setCantidad((c) => Math.max(1, c - 1))} style={btnCantidad}>−</button>
+                  <span style={{ fontSize: "16px", minWidth: "24px", textAlign: "center" }}>{cantidad}</span>
+                  <button onClick={() => setCantidad((c) => Math.min(producto.stock, c + 1))} style={btnCantidad}>+</button>
+                </div>
                 <button
-                  onClick={() => setCantidad((c) => Math.max(1, c - 1))}
-                  style={btnCantidad}
+                  onClick={agregarAlCarrito}
+                  style={{ width: "100%", background: "var(--primary)", color: "white", border: "none", padding: "16px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: "pointer" }}
                 >
-                  −
-                </button>
-                <span style={{ fontSize: "16px", minWidth: "24px", textAlign: "center" }}>{cantidad}</span>
-                <button
-                  onClick={() => setCantidad((c) => Math.min(producto.stock, c + 1))}
-                  style={btnCantidad}
-                >
-                  +
+                  Agregar al carrito
                 </button>
               </div>
-              <button
-                onClick={agregarAlCarrito}
-                style={{ width: "100%", background: "var(--primary)", color: "white", border: "none", padding: "16px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: "pointer" }}
-              >
-                Agregar al carrito
-              </button>
-            </div>
-          ) : (
-            <p style={{ fontSize: "13px", color: "var(--gray)", fontStyle: "italic" }}>
-              Este producto no está disponible actualmente.
-            </p>
+            ) : (
+              <p style={{ fontSize: "13px", color: "var(--gray)", fontStyle: "italic" }}>
+                Este producto no está disponible actualmente.
+              </p>
+            )
           )}
         </div>
       </div>
+      {/* Productos similares */}
+      {(() => {
+        const similares = productos
+          .filter((p) => p.id !== producto.id && (p.colorId === producto.colorId || p.cepaId === producto.cepaId))
+          .slice(0, 3);
+        if (similares.length === 0) return null;
+        return (
+          <div style={{ marginTop: "64px", borderTop: "1px solid var(--border)", paddingTop: "48px" }}>
+            <p style={{ fontFamily: "var(--font-serif)", fontSize: "24px", marginBottom: "32px" }}>
+              Productos similares
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px" }}>
+              {similares.map((p) => (
+                <ProductCard key={p.id} producto={p} colores={colores} cepas={cepas} />
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

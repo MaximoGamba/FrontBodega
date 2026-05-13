@@ -26,17 +26,20 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || "/";
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.email || !form.password) {
+    if (!form.username || !form.password) {
       setError("Completá todos los campos.");
       return;
     }
-    login(form.email, form.password);
-    navigate(from);
+    login(form.username, form.password)
+      .then((ok) => {
+        if (ok) navigate(from);
+        else setError("Email o contraseña incorrectos.");
+      });
   };
 
   return (
@@ -51,12 +54,11 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div>
-            <label style={labelStyle}>Email</label>
+            <label style={labelStyle}>Usuario</label>
             <input
               style={inputStyle}
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
             />
           </div>
           <div>

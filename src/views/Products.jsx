@@ -1,9 +1,22 @@
-import { useState } from "react";
-import { productosIniciales, colores, cepas, azucares, crianzas, elaboraciones, medidas } from "../data/productos";
+import { useState, useEffect } from "react";
+import { colores, cepas, azucares, crianzas, elaboraciones, medidas } from "../data/productos";
 import ProductCard from "../components/ProductCard";
 
+const URL = "http://localhost:4002";
+
 const Products = () => {
-  const [productos] = useState(productosIniciales);
+  const [productos, setProductos] = useState([]);
+
+  useEffect(() => {
+    fetch(`${URL}/vinos`)
+      .then((response) => response.json())
+      .then((data) => {
+        setProductos(data);
+      })
+      .catch((error) => {
+        console.error("error al cargar los vinos", error);
+      });
+  }, []);
   const [filtros, setFiltros] = useState({
     colorId: [],
     cepaId: [],
