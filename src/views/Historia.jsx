@@ -1,13 +1,56 @@
+/** URLs de imágenes — reemplazá por las tuyas */
+const HISTORIA_HERO_BG =
+  "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80";
+const IMG_ORIGENES =
+  "https://images.unsplash.com/photo-1560493676-04071c5f467b?auto=format&fit=crop&w=1200&q=80";
+const IMG_SELECCION =
+  "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1200&q=80";
+const IMG_HOY =
+  "https://images.unsplash.com/photo-1506377247377-2a5b3b417ebb?auto=format&fit=crop&w=1600&q=80";
+
+const bloqueImagen = (src, alt) => (
+  <figure
+    style={{
+      margin: "0 0 56px",
+      border: "1px solid var(--border)",
+      overflow: "hidden",
+      background: "var(--border)",
+    }}
+  >
+    <img
+      src={src}
+      alt={alt}
+      style={{
+        width: "100%",
+        height: "min(380px, 55vw)",
+        objectFit: "cover",
+        display: "block",
+      }}
+    />
+  </figure>
+);
+
 const Historia = () => {
   return (
     <div>
 
       {/* Hero */}
-      <div style={{ background: "var(--neutral)", padding: "100px 40px", textAlign: "center" }}>
-        <p style={{ fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", color: "var(--secondary)", opacity: 0.7, marginBottom: "20px" }}>
+      <div
+        style={{
+          padding: "100px 40px",
+          textAlign: "center",
+          borderBottom: "1px solid var(--border)",
+          backgroundColor: "var(--neutral)",
+          backgroundImage: `linear-gradient(rgba(26, 26, 26, 0.7), rgba(26, 26, 26, 0.55)), url(${HISTORIA_HERO_BG})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        }}
+      >
+        <p style={{ fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", color: "var(--secondary)", opacity: 0.95, marginBottom: "20px" }}>
           Desde 1995
         </p>
-        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "52px", fontWeight: "400", color: "var(--secondary)", maxWidth: "600px", margin: "0 auto", lineHeight: "1.2" }}>
+        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "52px", fontWeight: "400", color: "var(--white)", maxWidth: "600px", margin: "0 auto", lineHeight: "1.2" }}>
           Nuestra Historia
         </h1>
       </div>
@@ -27,6 +70,8 @@ const Historia = () => {
           </p>
         </div>
 
+        {bloqueImagen(IMG_ORIGENES, "Viñedos al pie de la cordillera")}
+
         <div style={{ width: "48px", height: "2px", background: "var(--primary)", marginBottom: "56px" }} />
 
         <div style={{ marginBottom: "56px" }}>
@@ -41,6 +86,8 @@ const Historia = () => {
           </p>
         </div>
 
+        {bloqueImagen(IMG_SELECCION, "Selección de vinos en botellas")}
+
         <div style={{ width: "48px", height: "2px", background: "var(--primary)", marginBottom: "56px" }} />
 
         <div style={{ marginBottom: "56px" }}>
@@ -54,6 +101,8 @@ const Historia = () => {
             Hoy contamos con cientos de clientes en todo el país y un catálogo de más de 50 vinos cuidadosamente seleccionados. Cada año incorporamos nuevas bodegas y varietales, siempre con el compromiso de ofrecerte la mejor experiencia vinícola desde la comodidad de tu hogar.
           </p>
         </div>
+
+        {bloqueImagen(IMG_HOY, "Interior de bodega con barricas")}
 
         {/* Números */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px", borderTop: "1px solid var(--border)", paddingTop: "56px", textAlign: "center" }}>
