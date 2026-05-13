@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router-dom";
 import { productosIniciales, colores, cepas, azucares, crianzas, elaboraciones, medidas } from "../data/productos";
 import ProductCard from "../components/ProductCard";
 
+const URL = "http://localhost:4002";
+
 const Products = () => {
   const [searchParams, setSearchParams] = useSearchParams(); //useSearchParams es un hook que se usa para obtener los parametros de la url
   const busquedaRaw = (searchParams.get("q") || "").trim();

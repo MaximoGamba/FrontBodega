@@ -1,13 +1,14 @@
 import { productosIniciales, colores, cepas } from "../data/productos";
 import ProductCard from "../components/ProductCard";
 
-const enOferta = productosIniciales.filter((p) => p.discountPercent > 0 && p.activo);
-
 const Sale = () => {
+  const productos = productosIniciales;
+  const enOferta = productos.filter((p) => p.discountPercent > 0 && p.activo);
+
   return (
     <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 40px" }}>
       <div style={{ marginBottom: "32px", borderBottom: "2px solid var(--primary)", paddingBottom: "16px" }}>
-        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "36px", marginBottom: "8px" }}>Sale</h1>
+        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "36px", marginBottom: "8px" }}>Ofertas</h1>
         <p style={{ fontSize: "13px", color: "var(--gray)" }}>
           {enOferta.length} productos con descuento
         </p>

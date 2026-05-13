@@ -14,6 +14,20 @@ const Navbar = () => {
   const qEnUrl = searchParams.get("q") ?? "";
   const [query, setQuery] = useState("");
   const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+  const [searchAbierto, setSearchAbierto] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+
+  const handleSearch = (e) => {
+    if (e.key === "Enter" && searchValue.trim()) {
+      navigate(`/productos?q=${encodeURIComponent(searchValue.trim())}`);
+      setSearchAbierto(false);
+      setSearchValue("");
+    }
+    if (e.key === "Escape") {
+      setSearchAbierto(false);
+      setSearchValue("");
+    }
+  };
 
   useEffect(() => {
     if (location.pathname === "/productos") {
@@ -46,13 +60,18 @@ const Navbar = () => {
       <div className="collapse navbar-collapse justify-content-center">
         <ul className="navbar-nav gap-4">
           <li className="nav-item">
+            <Link to="/" className="nav-link" style={{ fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--neutral)" }}>
+              Inicio
+            </Link>
+          </li>
+          <li className="nav-item">
             <Link to="/productos" className="nav-link" style={{ fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--neutral)" }}>
               Catálogo
             </Link>
           </li>
           <li className="nav-item">
             <Link to="/sale" className="nav-link" style={{ fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--neutral)" }}>
-              Sale
+              Ofertas
             </Link>
           </li>
           <li className="nav-item">
@@ -65,6 +84,13 @@ const Navbar = () => {
               Contacto
             </Link>
           </li>
+          {esAdmin && (
+            <li className="nav-item">
+              <Link to="/admin" className="nav-link" style={{ fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--primary)", fontWeight: "600" }}>
+                Panel Admin
+              </Link>
+            </li>
+          )}
         </ul>
       </div>
 
@@ -94,14 +120,16 @@ const Navbar = () => {
         <Link to={usuario ? "/perfil" : "/login"} state={!usuario ? { from: "/perfil" } : undefined} style={{ color: "var(--neutral)" }}>
           <LuUser size={20} />
         </Link>
-        <Link to="/carrito" style={{ position: "relative", color: "var(--neutral)" }}>
-          <LuShoppingBag size={20} />
-          {totalItems > 0 && (
-            <span style={{ position: "absolute", top: "-8px", right: "-8px", background: "var(--primary)", color: "white", borderRadius: "50%", width: "18px", height: "18px", fontSize: "11px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {totalItems}
-            </span>
-          )}
-        </Link>
+        {!esAdmin && (
+          <Link to="/carrito" style={{ position: "relative", color: "var(--neutral)" }}>
+            <LuShoppingBag size={20} />
+            {totalItems > 0 && (
+              <span style={{ position: "absolute", top: "-8px", right: "-8px", background: "var(--primary)", color: "white", borderRadius: "50%", width: "18px", height: "18px", fontSize: "11px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {totalItems}
+              </span>
+            )}
+          </Link>
+        )}
       </div>
     </nav>
   );
