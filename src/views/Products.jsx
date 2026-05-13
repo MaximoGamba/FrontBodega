@@ -1,21 +1,12 @@
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { productosIniciales, colores, cepas, azucares, crianzas, elaboraciones, medidas } from "../data/productos";
+import { colores, cepas, azucares, crianzas, elaboraciones, medidas, productosIniciales } from "../data/productos";
 import ProductCard from "../components/ProductCard";
 
-const URL = "http://localhost:4002";
-
 const Products = () => {
-  const [searchParams, setSearchParams] = useSearchParams(); //useSearchParams es un hook que se usa para obtener los parametros de la url
-  const busquedaRaw = (searchParams.get("q") || "").trim();
-  const tokensBusqueda = busquedaRaw
-    ? busquedaRaw
-        .toLowerCase() //toLowerCase es un metodo que se usa para convertir el texto a minusculas
-        .split(/\s+/)
-        .filter(Boolean)
-    : [];
-
-  const [productos] = useState(productosIniciales); //productosIniciales es un array de productos
+  const [productos] = useState(productosIniciales);
+  const [searchParams] = useSearchParams();
+  const busqueda = searchParams.get("q") || "";
   const [filtros, setFiltros] = useState({
     colorId: [],
     cepaId: [],
@@ -27,7 +18,7 @@ const Products = () => {
     precioMax: 10000,
   });
 
-  const handleCheckbox = (campo, valor) => { //handleCheckbox es la funcion que se usa para manejar el checkbox
+  const handleCheckbox = (campo, valor) => {
     const actual = filtros[campo];
     const num = Number(valor);
     if (actual.includes(num)) {
@@ -41,19 +32,18 @@ const Products = () => {
     setFiltros({ colorId: [], cepaId: [], azucarId: [], crianzaId: [], elaboracionId: [], medidaId: [], precioMin: 0, precioMax: 10000 });
   };
 
-  const limpiarBusqueda = () => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.delete("q");
-      return next;
-    });
-  };
-
-  const productosFiltrados = productos.filter((p) => { 
-    if (tokensBusqueda.length) {
+  const productosFiltrados = productos.filter((p) => {
+    if (busqueda) {
+      const q = busqueda.toLowerCase();
+      const colorNombre = colores.find((c) => c.id === p.colorId)?.nombre ?? "";
       const cepaNombre = cepas.find((c) => c.id === p.cepaId)?.nombre ?? "";
-      const texto = `${p.name} ${p.winery} ${p.year} ${cepaNombre}`.toLowerCase();
-      if (!tokensBusqueda.every((t) => texto.includes(t))) return false;
+      const azucarNombre = azucares.find((c) => c.id === p.azucarId)?.nombre ?? "";
+      const crianzaNombre = crianzas.find((c) => c.id === p.crianzaId)?.nombre ?? "";
+      const elaboracionNombre = elaboraciones.find((c) => c.id === p.elaboracionId)?.nombre ?? "";
+      const medidaNombre = medidas.find((c) => c.id === p.medidaId)?.nombre ?? "";
+      const coincide = [p.name, p.winery, colorNombre, cepaNombre, azucarNombre, crianzaNombre, elaboracionNombre, medidaNombre, String(p.year)]
+        .some((campo) => campo.toLowerCase().includes(q));
+      if (!coincide) return false;
     }
     if (filtros.colorId.length && !filtros.colorId.includes(p.colorId)) return false;
     if (filtros.cepaId.length && !filtros.cepaId.includes(p.cepaId)) return false;
@@ -86,7 +76,7 @@ const Products = () => {
             <p style={{ fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "12px", fontWeight: "600" }}>
               {label}
             </p>
-            {opciones.map((op) => ( 
+            {opciones.map((op) => (
               <label key={op.id} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", cursor: "pointer", fontSize: "14px" }}>
                 <input
                   type="checkbox"
@@ -135,24 +125,11 @@ const Products = () => {
       </aside>
 
       <main style={{ flex: 1, padding: "32px 40px" }}>
-        <div style={{ marginBottom: "32px", borderBottom: "2px solid var(--primary)", paddingBottom: "16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: "12px" }}>
-            <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "36px", margin: 0 }}>Catálogo de Vinos</h1>
-            <span style={{ fontSize: "13px", color: "var(--gray)" }}>{productosFiltrados.length} resultados</span>
-          </div>
-          {busquedaRaw && (
-            <p style={{ fontSize: "13px", color: "var(--gray)", marginTop: "12px", marginBottom: 0 }}>
-              Búsqueda: <strong style={{ color: "var(--neutral)" }}>{busquedaRaw}</strong>
-              {" · "}
-              <button
-                type="button"
-                onClick={limpiarBusqueda}
-                style={{ border: "none", background: "none", padding: 0, cursor: "pointer", color: "var(--primary)", textDecoration: "underline", fontSize: "13px" }}
-              >
-                Quitar búsqueda
-              </button>
-            </p>
-          )}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "32px", borderBottom: "2px solid var(--primary)", paddingBottom: "16px" }}>
+          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "36px" }}>
+            {busqueda ? `Buscando resultados para: "${busqueda}"` : "Catálogo de Vinos"}
+          </h1>
+          <span style={{ fontSize: "13px", color: "var(--gray)" }}>{productosFiltrados.length} resultados</span>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px" }}>
@@ -168,9 +145,7 @@ const Products = () => {
 
         {productosFiltrados.length === 0 && (
           <p style={{ textAlign: "center", color: "var(--gray)", marginTop: "60px", fontSize: "16px" }}>
-            {busquedaRaw
-              ? "No hay vinos que coincidan con la búsqueda y los filtros seleccionados."
-              : "No hay vinos que coincidan con los filtros seleccionados."}
+            No hay vinos que coincidan con los filtros seleccionados.
           </p>
         )}
       </main>

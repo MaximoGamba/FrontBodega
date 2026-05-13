@@ -3,7 +3,7 @@ import ProductCard from "../components/ProductCard";
 
 const Sale = () => {
   const productos = productosIniciales;
-  const enOferta = productos.filter((p) => p.discountPercent > 0 && p.activo);
+  const enOferta = productos.filter((p) => p.discountPercent > 0);
 
   return (
     <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 40px" }}>

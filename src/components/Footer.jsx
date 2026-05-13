@@ -59,7 +59,7 @@ const Footer = () => {
             {[
               { label: "Inicio", to: "/" },
               { label: "Productos", to: "/productos" },
-              { label: "Sale", to: "/sale" },
+              { label: "Ofertas", to: "/ofertas" },
               { label: "Nuestra Historia", to: "/historia" },
               { label: "Contacto", to: "/contacto" },
             ].map(({ label, to }) => (
