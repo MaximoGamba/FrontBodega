@@ -13,6 +13,7 @@ import Perfil from "./views/Perfil";
 import Sale from "./views/Sale";
 import Historia from "./views/Historia";
 import Contacto from "./views/Contacto";
+import AdminRoute from "./components/AdminRoute";
 
 function App() {
   return (
@@ -24,7 +25,7 @@ function App() {
         <Route path="/productos/:id" element={<ProductDetail />} />
         <Route path="/carrito" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
         <Route path="/perfil" element={<Perfil />} />

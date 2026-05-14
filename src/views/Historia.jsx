@@ -1,15 +1,60 @@
+import { useEffect, useRef } from "react";
+
 const Historia = () => {
+  const playerRef = useRef(null);
+  const divRef = useRef(null);
+
+  useEffect(() => {
+    const initPlayer = () => {
+      playerRef.current = new window.YT.Player(divRef.current, {
+        videoId: "bo1vdwObdS8",
+        playerVars: { autoplay: 1, mute: 1, controls: 0, rel: 0, modestbranding: 1, showinfo: 0, fs: 0, iv_load_policy: 3, disablekb: 1, playsinline: 1, start: 13 },
+        events: {
+          onStateChange: (e) => {
+            if (e.data === window.YT.PlayerState.ENDED) {
+              playerRef.current.seekTo(5);
+              playerRef.current.playVideo();
+            }
+          },
+        },
+      });
+    };
+
+    if (window.YT?.Player) {
+      initPlayer();
+    } else {
+      const tag = document.createElement("script");
+      tag.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(tag);
+      window.onYouTubeIframeAPIReady = initPlayer;
+    }
+
+    return () => { playerRef.current?.destroy(); };
+  }, []);
+
   return (
     <div>
 
       {/* Hero */}
-      <div style={{ background: "var(--neutral)", padding: "100px 40px", textAlign: "center" }}>
-        <p style={{ fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", color: "var(--secondary)", opacity: 0.7, marginBottom: "20px" }}>
-          Desde 1995
-        </p>
-        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "52px", fontWeight: "400", color: "var(--secondary)", maxWidth: "600px", margin: "0 auto", lineHeight: "1.2" }}>
-          Nuestra Historia
-        </h1>
+      <div style={{ position: "relative", height: "600px", overflow: "hidden", background: "var(--neutral)" }}>
+        <div ref={divRef} style={{
+          position: "absolute",
+          top: "50%", left: "50%",
+          transform: "translate(-50%, -50%)",
+          width: "100vw", height: "56.25vw",
+          minWidth: "177.78vh", minHeight: "100%",
+          pointerEvents: "none",
+        }} />
+        <div style={{ position: "absolute", inset: 0, zIndex: 1 }} />
+        <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 2 }} />
+        <div style={{ position: "relative", zIndex: 3, height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 40px" }}>
+          <p style={{ fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", color: "var(--secondary)", opacity: 0.85, marginBottom: "20px" }}>
+            Desde 1995
+          </p>
+          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "52px", fontWeight: "400", color: "white", maxWidth: "600px", margin: "0 auto", lineHeight: "1.2" }}>
+            Nuestra Historia
+          </h1>
+        </div>
       </div>
 
       {/* Contenido */}

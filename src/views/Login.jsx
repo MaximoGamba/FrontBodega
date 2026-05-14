@@ -26,20 +26,21 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || "/";
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
+  const [cargando, setCargando] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.email || !form.password) {
+    if (!form.username || !form.password) {
       setError("Completá todos los campos.");
       return;
     }
-    login(form.email, form.password)
-      .then((ok) => {
-        if (ok) navigate(from);
-        else setError("Email o contraseña incorrectos.");
-      });
+    setCargando(true);
+    const ok = await login(form.username, form.password);
+    setCargando(false);
+    if (ok) navigate(from);
+    else setError("Usuario o contraseña incorrectos.");
   };
 
   return (
@@ -54,12 +55,13 @@ const Login = () => {
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
           <div>
-            <label style={labelStyle}>Email</label>
+            <label style={labelStyle}>Usuario</label>
             <input
               style={inputStyle}
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              type="text"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              autoComplete="username"
             />
           </div>
           <div>
@@ -69,6 +71,7 @@ const Login = () => {
               type="password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
+              autoComplete="current-password"
             />
           </div>
 
@@ -78,9 +81,10 @@ const Login = () => {
 
           <button
             type="submit"
-            style={{ background: "var(--primary)", color: "white", border: "none", padding: "14px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: "pointer", marginTop: "4px" }}
+            disabled={cargando}
+            style={{ background: "var(--primary)", color: "white", border: "none", padding: "14px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: cargando ? "not-allowed" : "pointer", opacity: cargando ? 0.7 : 1, marginTop: "4px" }}
           >
-            Ingresar
+            {cargando ? "Ingresando..." : "Ingresar"}
           </button>
         </form>
 

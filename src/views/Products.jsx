@@ -1,12 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { colores, cepas, azucares, crianzas, elaboraciones, medidas, productosIniciales } from "../data/productos";
 import ProductCard from "../components/ProductCard";
+import { fetchVinos } from "../services/api";
+
+const unicos = (vinos, idKey, nombreKey) => {
+  const map = new Map();
+  vinos.forEach((v) => {
+    if (v[idKey] && !map.has(v[idKey])) {
+      map.set(v[idKey], { id: v[idKey], nombre: v[nombreKey] });
+    }
+  });
+  return [...map.values()].sort((a, b) => a.nombre.localeCompare(b.nombre));
+};
 
 const Products = () => {
-  const [productos] = useState(productosIniciales);
+  const [todos, setTodos] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState("");
   const [searchParams] = useSearchParams();
   const busqueda = searchParams.get("q") || "";
+  const [orden, setOrden] = useState("");
   const [filtros, setFiltros] = useState({
     colorId: [],
     cepaId: [],
@@ -15,34 +28,43 @@ const Products = () => {
     elaboracionId: [],
     medidaId: [],
     precioMin: 0,
-    precioMax: 10000,
+    precioMax: 100000,
   });
+
+  useEffect(() => {
+    fetchVinos()
+      .then((data) => {
+        setTodos(data);
+        setCargando(false);
+      })
+      .catch(() => {
+        setError("No se pudieron cargar los productos.");
+        setCargando(false);
+      });
+  }, []);
+
+  const colores = useMemo(() => unicos(todos, "colorId", "colorNombre"), [todos]);
+  const cepas = useMemo(() => unicos(todos, "cepaId", "cepaNombre"), [todos]);
+  const azucares = useMemo(() => unicos(todos, "azucarId", "azucarNombre"), [todos]);
+  const crianzas = useMemo(() => unicos(todos, "crianzaId", "crianzaNombre"), [todos]);
+  const elaboraciones = useMemo(() => unicos(todos, "elaboracionId", "elaboracionNombre"), [todos]);
+  const medidas = useMemo(() => unicos(todos, "medidaId", "medidaNombre"), [todos]);
 
   const handleCheckbox = (campo, valor) => {
     const actual = filtros[campo];
     const num = Number(valor);
-    if (actual.includes(num)) {
-      setFiltros({ ...filtros, [campo]: actual.filter((v) => v !== num) });
-    } else {
-      setFiltros({ ...filtros, [campo]: [...actual, num] });
-    }
+    setFiltros({ ...filtros, [campo]: actual.includes(num) ? actual.filter((v) => v !== num) : [...actual, num] });
   };
 
   const limpiarFiltros = () => {
-    setFiltros({ colorId: [], cepaId: [], azucarId: [], crianzaId: [], elaboracionId: [], medidaId: [], precioMin: 0, precioMax: 10000 });
+    setFiltros({ colorId: [], cepaId: [], azucarId: [], crianzaId: [], elaboracionId: [], medidaId: [], precioMin: 0, precioMax: 100000 });
   };
 
-  const productosFiltrados = productos.filter((p) => {
+  const productosFiltrados = todos.filter((p) => {
     if (busqueda) {
       const q = busqueda.toLowerCase();
-      const colorNombre = colores.find((c) => c.id === p.colorId)?.nombre ?? "";
-      const cepaNombre = cepas.find((c) => c.id === p.cepaId)?.nombre ?? "";
-      const azucarNombre = azucares.find((c) => c.id === p.azucarId)?.nombre ?? "";
-      const crianzaNombre = crianzas.find((c) => c.id === p.crianzaId)?.nombre ?? "";
-      const elaboracionNombre = elaboraciones.find((c) => c.id === p.elaboracionId)?.nombre ?? "";
-      const medidaNombre = medidas.find((c) => c.id === p.medidaId)?.nombre ?? "";
-      const coincide = [p.name, p.winery, colorNombre, cepaNombre, azucarNombre, crianzaNombre, elaboracionNombre, medidaNombre, String(p.year)]
-        .some((campo) => campo.toLowerCase().includes(q));
+      const coincide = [p.name, p.winery, p.colorNombre, p.cepaNombre, p.azucarNombre, p.crianzaNombre, p.elaboracionNombre, p.medidaNombre, String(p.year)]
+        .some((campo) => campo?.toLowerCase().includes(q));
       if (!coincide) return false;
     }
     if (filtros.colorId.length && !filtros.colorId.includes(p.colorId)) return false;
@@ -54,6 +76,15 @@ const Products = () => {
     if (p.price < filtros.precioMin || p.price > filtros.precioMax) return false;
     return true;
   });
+
+  const ordenar = (lista) => {
+    const c = [...lista];
+    if (orden === "precio-asc") return c.sort((a, b) => a.price - b.price);
+    if (orden === "precio-desc") return c.sort((a, b) => b.price - a.price);
+    if (orden === "nuevo") return c.sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
+    if (orden === "antiguo") return c.sort((a, b) => (a.year ?? 0) - (b.year ?? 0));
+    return c;
+  };
 
   const checkboxStyle = { accentColor: "var(--primary)", width: "16px", height: "16px" };
 
@@ -72,23 +103,25 @@ const Products = () => {
           { label: "Elaboración", campo: "elaboracionId", opciones: elaboraciones },
           { label: "Medida", campo: "medidaId", opciones: medidas },
         ].map(({ label, campo, opciones }) => (
-          <div key={campo} style={{ marginBottom: "24px" }}>
-            <p style={{ fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "12px", fontWeight: "600" }}>
-              {label}
-            </p>
-            {opciones.map((op) => (
-              <label key={op.id} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", cursor: "pointer", fontSize: "14px" }}>
-                <input
-                  type="checkbox"
-                  value={op.id}
-                  checked={filtros[campo].includes(op.id)}
-                  onChange={(e) => handleCheckbox(campo, e.target.value)}
-                  style={checkboxStyle}
-                />
-                {op.nombre}
-              </label>
-            ))}
-          </div>
+          opciones.length > 0 && (
+            <div key={campo} style={{ marginBottom: "24px" }}>
+              <p style={{ fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase", marginBottom: "12px", fontWeight: "600" }}>
+                {label}
+              </p>
+              {opciones.map((op) => (
+                <label key={op.id} style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", cursor: "pointer", fontSize: "14px" }}>
+                  <input
+                    type="checkbox"
+                    value={op.id}
+                    checked={filtros[campo].includes(op.id)}
+                    onChange={(e) => handleCheckbox(campo, e.target.value)}
+                    style={checkboxStyle}
+                  />
+                  {op.nombre}
+                </label>
+              ))}
+            </div>
+          )
         ))}
 
         <div style={{ marginBottom: "24px" }}>
@@ -101,19 +134,13 @@ const Products = () => {
           </div>
           <p style={{ fontSize: "12px", color: "var(--gray)", marginBottom: "4px" }}>Desde</p>
           <input
-            type="range"
-            min={0}
-            max={10000}
-            value={filtros.precioMin}
+            type="range" min={0} max={100000} value={filtros.precioMin}
             onChange={(e) => setFiltros({ ...filtros, precioMin: Number(e.target.value) })}
             style={{ width: "100%", accentColor: "var(--primary)" }}
           />
           <p style={{ fontSize: "12px", color: "var(--gray)", marginBottom: "4px" }}>Hasta</p>
           <input
-            type="range"
-            min={0}
-            max={10000}
-            value={filtros.precioMax}
+            type="range" min={0} max={100000} value={filtros.precioMax}
             onChange={(e) => setFiltros({ ...filtros, precioMax: Number(e.target.value) })}
             style={{ width: "100%", accentColor: "var(--primary)" }}
           />
@@ -129,21 +156,43 @@ const Products = () => {
           <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "36px" }}>
             {busqueda ? `Buscando resultados para: "${busqueda}"` : "Catálogo de Vinos"}
           </h1>
-          <span style={{ fontSize: "13px", color: "var(--gray)" }}>{productosFiltrados.length} resultados</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <span style={{ fontSize: "13px", color: "var(--gray)" }}>{productosFiltrados.length} resultados</span>
+            <select
+              value={orden}
+              onChange={(e) => setOrden(e.target.value)}
+              style={{ border: "1px solid var(--border)", padding: "6px 10px", fontSize: "12px", fontFamily: "var(--font-sans)", background: "white", cursor: "pointer" }}
+            >
+              <option value="">Ordenar por</option>
+              <option value="precio-asc">Menor precio</option>
+              <option value="precio-desc">Mayor precio</option>
+              <option value="nuevo">Más reciente</option>
+              <option value="antiguo">Más antiguo</option>
+            </select>
+          </div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px" }}>
-          {productosFiltrados.map((producto) => (
-            <ProductCard
-              key={producto.id}
-              producto={producto}
-              colores={colores}
-              cepas={cepas}
-            />
-          ))}
-        </div>
+        {cargando && (
+          <p style={{ textAlign: "center", color: "var(--gray)", marginTop: "60px", fontSize: "16px" }}>
+            Cargando productos...
+          </p>
+        )}
 
-        {productosFiltrados.length === 0 && (
+        {error && (
+          <p style={{ textAlign: "center", color: "var(--primary)", marginTop: "60px", fontSize: "16px" }}>
+            {error}
+          </p>
+        )}
+
+        {!cargando && !error && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px" }}>
+            {ordenar(productosFiltrados).map((producto) => (
+              <ProductCard key={producto.id} producto={producto} />
+            ))}
+          </div>
+        )}
+
+        {!cargando && !error && productosFiltrados.length === 0 && (
           <p style={{ textAlign: "center", color: "var(--gray)", marginTop: "60px", fontSize: "16px" }}>
             No hay vinos que coincidan con los filtros seleccionados.
           </p>

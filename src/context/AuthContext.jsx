@@ -1,13 +1,7 @@
 import { createContext, useContext, useState } from "react";
+import { loginAPI, registrarAPI } from "../services/api";
 
 const AuthContext = createContext();
-
-const USERS_KEY = "usuarios_registrados";
-
-const getUsuarios = () => {
-  try { return JSON.parse(localStorage.getItem(USERS_KEY)) || []; }
-  catch { return []; }
-};
 
 export const AuthProvider = ({ children }) => {
   const [usuario, setUsuario] = useState(() => {
@@ -15,35 +9,51 @@ export const AuthProvider = ({ children }) => {
     catch { return null; }
   });
 
-  const login = (email, password) => {
-    const usuarios = getUsuarios();
-    const encontrado = usuarios.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password
-    );
-    if (encontrado) {
-      const sesion = { email: encontrado.email, nombre: encontrado.firstname, rol: encontrado.rol || "user" };
+  const login = async (username, password) => {
+    try {
+      const data = await loginAPI(username, password);
+      if (!data?.access_token) return false;
+
+      const sesion = {
+        id: data.user_id,
+        username,
+        nombre: username,
+        rol: (data.role || "USER").toLowerCase(),
+      };
+
+      localStorage.setItem("token", data.access_token);
       localStorage.setItem("usuario_sesion", JSON.stringify(sesion));
       setUsuario(sesion);
-      return Promise.resolve(true);
+      return true;
+    } catch {
+      return false;
     }
-    return Promise.resolve(false);
   };
 
-  const registrar = (firstname, lastname, email, _username, password) => {
-    const usuarios = getUsuarios();
-    if (usuarios.find((u) => u.email.toLowerCase() === email.toLowerCase())) {
-      return Promise.resolve(false);
+  const registrar = async (firstname, lastname, email, username, password) => {
+    try {
+      const data = await registrarAPI({ firstname, lastname, email, username, password });
+      if (!data?.access_token) return false;
+
+      const sesion = {
+        id: data.user_id,
+        username,
+        nombre: firstname,
+        rol: (data.role || "USER").toLowerCase(),
+      };
+
+      localStorage.setItem("token", data.access_token);
+      localStorage.setItem("usuario_sesion", JSON.stringify(sesion));
+      setUsuario(sesion);
+      return true;
+    } catch {
+      return false;
     }
-    const nuevo = { firstname, lastname, email, password, rol: "user" };
-    localStorage.setItem(USERS_KEY, JSON.stringify([...usuarios, nuevo]));
-    const sesion = { email: nuevo.email, nombre: nuevo.firstname, rol: "user" };
-    localStorage.setItem("usuario_sesion", JSON.stringify(sesion));
-    setUsuario(sesion);
-    return Promise.resolve(true);
   };
 
   const logout = () => {
     localStorage.removeItem("usuario_sesion");
+    localStorage.removeItem("token");
     setUsuario(null);
   };
 
