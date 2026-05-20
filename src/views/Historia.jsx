@@ -1,15 +1,18 @@
 const Historia = () => {
+
   return (
     <div>
 
       {/* Hero */}
-      <div style={{ background: "var(--neutral)", padding: "100px 40px", textAlign: "center" }}>
-        <p style={{ fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", color: "var(--secondary)", opacity: 0.7, marginBottom: "20px" }}>
-          Desde 1995
-        </p>
-        <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "52px", fontWeight: "400", color: "var(--secondary)", maxWidth: "600px", margin: "0 auto", lineHeight: "1.2" }}>
-          Nuestra Historia
-        </h1>
+      <div style={{ position: "relative", height: "600px", background: "#000" }}>
+        <div style={{ position: "relative", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", padding: "0 40px" }}>
+          <p style={{ fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", color: "var(--secondary)", opacity: 0.85, marginBottom: "20px" }}>
+            Desde 1995
+          </p>
+          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "52px", fontWeight: "400", color: "white", maxWidth: "600px", margin: "0 auto", lineHeight: "1.2" }}>
+            Nuestra Historia
+          </h1>
+        </div>
       </div>
 
       {/* Contenido */}

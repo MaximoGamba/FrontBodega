@@ -36,6 +36,9 @@ const CartItem = ({ item, onCambiarCantidad, onEliminar }) => {
             {item.name}
           </p>
         </Link>
+        <p style={{ fontSize: "13px", color: "var(--gray)", marginBottom: "8px" }}>
+          Precio unitario: ${precioFinal.toLocaleString()}
+        </p>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <button onClick={() => onCambiarCantidad(item.id, -1)} style={btnCantidad}>−</button>

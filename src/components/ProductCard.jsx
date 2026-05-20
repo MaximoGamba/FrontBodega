@@ -1,42 +1,38 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
 
-const ProductCard = ({ producto, colores, cepas }) => {
-  const { carrito, setCarrito } = useCart();
+const ProductCard = ({ producto }) => {
+  const { carrito, agregarItem } = useCart();
   const { usuario } = useAuth();
+  const navigate = useNavigate();
   const esAdmin = usuario?.rol === "admin";
-
-  const color = colores.find((c) => c.id === producto.colorId)?.nombre || "";
-  const cepa = cepas.find((c) => c.id === producto.cepaId)?.nombre || "";
+  const enCarrito = carrito.find((i) => i.id === producto.id)?.cantidad ?? 0;
+  const sinDisponible = producto.stock === 0 || enCarrito >= producto.stock;
 
   const precioFinal = producto.discountPercent > 0
     ? producto.price * (1 - producto.discountPercent / 100)
     : producto.price;
 
   const agregarAlCarrito = () => {
-    const existe = carrito.find((item) => item.id === producto.id);
-    if (existe) {
-      setCarrito(carrito.map((item) =>
-        item.id === producto.id ? { ...item, cantidad: item.cantidad + 1 } : item
-      ));
-    } else {
-      setCarrito([...carrito, { ...producto, cantidad: 1 }]);
-    }
+    if (!usuario) { navigate("/login"); return; }
+    agregarItem(producto, 1);
+    toast.success(`${producto.name} agregado al carrito`, { toastId: `agregar-${producto.id}` });
   };
 
   return (
     <div style={{ cursor: "pointer" }}>
       <Link to={`/productos/${producto.id}`}>
-        <div style={{ position: "relative", marginBottom: "12px", overflow: "hidden" }}>
+        <div style={{ position: "relative", marginBottom: "12px", overflow: "hidden", background: "#ffffff" }}>
           <img
             src={producto.imagen}
             alt={producto.name}
-            style={{ width: "100%", height: "280px", objectFit: "cover" }}
+            style={{ width: "100%", height: "320px", objectFit: "contain", padding: "12px" }}
           />
           {producto.stock === 0 && (
-            <span style={{ position: "absolute", top: "12px", right: "12px", background: "#1A1A1A", color: "white", fontSize: "11px", padding: "4px 10px", letterSpacing: "1px" }}>
-              AGOTADO
+            <span style={{ position: "absolute", top: "12px", right: "12px", background: "var(--primary-dark)", color: "white", fontSize: "11px", padding: "4px 10px", letterSpacing: "1px" }}>
+              Sin stock
             </span>
           )}
           {producto.discountPercent > 0 && (
@@ -46,7 +42,7 @@ const ProductCard = ({ producto, colores, cepas }) => {
           )}
         </div>
         <p style={{ fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase", color: "var(--gray)", marginBottom: "4px" }}>
-          {color} · {cepa}
+          {producto.colorNombre} · {producto.cepaNombre}
         </p>
         <h3 style={{ fontFamily: "var(--font-serif)", fontSize: "16px", marginBottom: "4px" }}>
           {producto.name}
@@ -60,9 +56,20 @@ const ProductCard = ({ producto, colores, cepas }) => {
           ${precioFinal.toLocaleString()}
         </p>
       </Link>
-      {producto.stock > 0 && !esAdmin && (
-        <button onClick={agregarAlCarrito} style={{ marginTop: "8px", width: "100%", background: "var(--primary)", color: "white", border: "none", padding: "10px", fontSize: "12px", letterSpacing: "1px", textTransform: "uppercase", cursor: "pointer" }}>
-          Agregar
+      {!esAdmin && (
+        <button
+          onClick={agregarAlCarrito}
+          disabled={sinDisponible}
+          style={{
+            marginTop: "8px", width: "100%", border: "none", padding: "10px",
+            fontSize: "12px", letterSpacing: "1px", textTransform: "uppercase",
+            background: sinDisponible ? "var(--primary-dark)" : "var(--primary)",
+            color: "white",
+            cursor: sinDisponible ? "not-allowed" : "pointer",
+            opacity: sinDisponible ? 0.7 : 1,
+          }}
+        >
+          {producto.stock === 0 ? "Sin stock" : enCarrito >= producto.stock ? "Máximo alcanzado" : "Agregar"}
         </button>
       )}
     </div>

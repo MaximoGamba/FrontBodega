@@ -21,6 +21,7 @@ const Footer = () => {
     }
     setExito(true);
     setEmail("");
+    setTimeout(() => setExito(false), 3000);
   };
 
   return (

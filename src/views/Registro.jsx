@@ -26,24 +26,33 @@ const Registro = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || "/";
-  const [form, setForm] = useState({ firstname: "", lastname: "", email: "", password: "", confirmar: "" });
+  const [form, setForm] = useState({
+    firstname: "",
+    lastname: "",
+    email: "",
+    username: "",
+    password: "",
+    confirmar: "",
+  });
   const [error, setError] = useState("");
+  const [cargando, setCargando] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.firstname || !form.lastname || !form.email || !form.password || !form.confirmar) {
+    const { firstname, lastname, email, username, password, confirmar } = form;
+    if (!firstname || !lastname || !email || !username || !password || !confirmar) {
       setError("Completá todos los campos.");
       return;
     }
-    if (form.password !== form.confirmar) {
+    if (password !== confirmar) {
       setError("Las contraseñas no coinciden.");
       return;
     }
-    registrar(form.firstname, form.lastname, form.email, form.email, form.password)
-      .then((ok) => {
-        if (ok) navigate(from);
-        else setError("Error al registrarse. Intentá de nuevo.");
-      });
+    setCargando(true);
+    const ok = await registrar(firstname, lastname, email, username, password);
+    setCargando(false);
+    if (ok) navigate(from);
+    else setError("Error al registrarse. El usuario o email puede estar en uso.");
   };
 
   return (
@@ -83,12 +92,23 @@ const Registro = () => {
             />
           </div>
           <div>
+            <label style={labelStyle}>Usuario</label>
+            <input
+              style={inputStyle}
+              type="text"
+              value={form.username}
+              onChange={(e) => setForm({ ...form, username: e.target.value })}
+              autoComplete="username"
+            />
+          </div>
+          <div>
             <label style={labelStyle}>Contraseña</label>
             <input
               style={inputStyle}
               type="password"
               value={form.password}
               onChange={(e) => setForm({ ...form, password: e.target.value })}
+              autoComplete="new-password"
             />
           </div>
           <div>
@@ -98,6 +118,7 @@ const Registro = () => {
               type="password"
               value={form.confirmar}
               onChange={(e) => setForm({ ...form, confirmar: e.target.value })}
+              autoComplete="new-password"
             />
           </div>
 
@@ -107,9 +128,10 @@ const Registro = () => {
 
           <button
             type="submit"
-            style={{ background: "var(--primary)", color: "white", border: "none", padding: "14px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: "pointer", marginTop: "4px" }}
+            disabled={cargando}
+            style={{ background: "var(--primary)", color: "white", border: "none", padding: "14px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: cargando ? "not-allowed" : "pointer", opacity: cargando ? 0.7 : 1, marginTop: "4px" }}
           >
-            Registrarse
+            {cargando ? "Registrando..." : "Registrarse"}
           </button>
         </form>
 

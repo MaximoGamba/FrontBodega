@@ -1,19 +1,57 @@
-import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
-import { productosIniciales, colores, cepas, azucares, crianzas, elaboraciones, medidas } from "../data/productos";
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useState, useEffect, useMemo } from "react";
 import { useCart } from "../context/CartContext";
 import { useAuth } from "../context/AuthContext";
 import ProductCard from "../components/ProductCard";
+import { fetchVino, fetchVinos } from "../services/api";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const { carrito, setCarrito } = useCart();
+  const { agregarItem } = useCart();
   const { usuario } = useAuth();
-  const productos = productosIniciales;
+  const navigate = useNavigate();
   const esAdmin = usuario?.rol === "admin";
   const [cantidad, setCantidad] = useState(1);
+  const [producto, setProducto] = useState(null);
+  const [similares, setSimilares] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [imagenActual, setImagenActual] = useState(null);
 
-  const producto = productos.find((p) => p.id === Number(id));
+  const todasImagenes = useMemo(() => {
+    if (!producto) return [];
+    try {
+      const guardadas = JSON.parse(localStorage.getItem(`bodega_imgs_${producto.id}`)) || [];
+      return [...new Set([producto.imagen, ...guardadas])].filter(Boolean);
+    } catch { return [producto.imagen].filter(Boolean); }
+  }, [producto]);
+
+  useEffect(() => {
+    setCargando(true);
+    setSimilares([]);
+    let cancelado = false;
+    Promise.all([fetchVino(id), fetchVinos()])
+      .then(([data, todos]) => {
+        if (cancelado) return;
+        setProducto(data);
+        setCargando(false);
+        setSimilares(
+          todos
+            .filter((p) => p.id !== data.id && (p.colorId === data.colorId || p.cepaId === data.cepaId))
+            .slice(0, 3)
+        );
+      })
+      .catch(() => { if (!cancelado) setCargando(false); });
+    return () => { cancelado = true; };
+  }, [id]);
+
+  if (cargando) {
+    return (
+      <div style={{ textAlign: "center", padding: "80px 24px" }}>
+        <p style={{ color: "var(--gray)", fontSize: "16px" }}>Cargando...</p>
+      </div>
+    );
+  }
 
   if (!producto) {
     return (
@@ -28,12 +66,7 @@ const ProductDetail = () => {
     );
   }
 
-  const color = colores.find((c) => c.id === producto.colorId)?.nombre || "";
-  const cepa = cepas.find((c) => c.id === producto.cepaId)?.nombre || "";
-  const azucar = azucares.find((a) => a.id === producto.azucarId)?.nombre || "";
-  const crianza = crianzas.find((c) => c.id === producto.crianzaId)?.nombre || "";
-  const elaboracion = elaboraciones.find((e) => e.id === producto.elaboracionId)?.nombre || "";
-  const medida = medidas.find((m) => m.id === producto.medidaId)?.nombre || "";
+  const imagenMostrada = imagenActual || producto.imagen;
 
   const precioFinal =
     producto.discountPercent > 0
@@ -41,18 +74,9 @@ const ProductDetail = () => {
       : producto.price;
 
   const agregarAlCarrito = () => {
-    const existe = carrito.find((item) => item.id === producto.id);
-    if (existe) {
-      setCarrito(
-        carrito.map((item) =>
-          item.id === producto.id
-            ? { ...item, cantidad: item.cantidad + cantidad }
-            : item
-        )
-      );
-    } else {
-      setCarrito([...carrito, { ...producto, cantidad }]);
-    }
+    if (!usuario) { navigate("/login"); return; }
+    agregarItem(producto, cantidad);
+    toast.success(`${producto.name} agregado al carrito`, { toastId: `agregar-${producto.id}` });
   };
 
   return (
@@ -68,28 +92,43 @@ const ProductDetail = () => {
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "64px", alignItems: "start" }}>
         {/* Imagen */}
-        <div style={{ position: "relative" }}>
-          <img
-            src={producto.imagen}
-            alt={producto.name}
-            style={{ width: "100%", maxHeight: "560px", objectFit: "cover" }}
-          />
-          {producto.discountPercent > 0 && (
-            <span style={{ position: "absolute", top: "16px", left: "16px", background: "var(--primary)", color: "white", fontSize: "12px", padding: "6px 12px", letterSpacing: "1px" }}>
-              -{producto.discountPercent}%
-            </span>
-          )}
-          {producto.stock === 0 && (
-            <span style={{ position: "absolute", top: "16px", right: "16px", background: "#1A1A1A", color: "white", fontSize: "12px", padding: "6px 12px", letterSpacing: "1px" }}>
-              AGOTADO
-            </span>
+        <div>
+          <div style={{ position: "relative" }}>
+            <img
+              src={imagenMostrada}
+              alt={producto.name}
+              style={{ width: "100%", maxHeight: "560px", objectFit: "cover" }}
+            />
+            {producto.discountPercent > 0 && (
+              <span style={{ position: "absolute", top: "16px", left: "16px", background: "var(--primary)", color: "white", fontSize: "12px", padding: "6px 12px", letterSpacing: "1px" }}>
+                -{producto.discountPercent}%
+              </span>
+            )}
+            {producto.stock === 0 && (
+              <span style={{ position: "absolute", top: "16px", right: "16px", background: "var(--primary-dark)", color: "white", fontSize: "12px", padding: "6px 12px", letterSpacing: "1px" }}>
+                Sin stock
+              </span>
+            )}
+          </div>
+          {todasImagenes.length > 1 && (
+            <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
+              {todasImagenes.map((url) => (
+                <img
+                  key={url}
+                  src={url}
+                  alt=""
+                  onClick={() => setImagenActual(url)}
+                  style={{ width: "60px", height: "60px", objectFit: "cover", cursor: "pointer", border: imagenMostrada === url ? "2px solid var(--primary)" : "2px solid transparent", opacity: imagenMostrada === url ? 1 : 0.65 }}
+                />
+              ))}
+            </div>
           )}
         </div>
 
         {/* Info */}
         <div>
           <p style={{ fontSize: "11px", letterSpacing: "2px", textTransform: "uppercase", color: "var(--gray)", marginBottom: "8px" }}>
-            {color} · {cepa}
+            {producto.colorNombre} · {producto.cepaNombre}
           </p>
           <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "36px", marginBottom: "4px" }}>
             {producto.name}
@@ -113,10 +152,10 @@ const ProductDetail = () => {
           {/* Ficha técnica */}
           <div style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", padding: "20px 0", marginBottom: "28px" }}>
             {[
-              { label: "Azúcar", valor: azucar },
-              { label: "Crianza", valor: crianza },
-              { label: "Elaboración", valor: elaboracion },
-              { label: "Medida", valor: medida },
+              { label: "Azúcar", valor: producto.azucarNombre },
+              { label: "Crianza", valor: producto.crianzaNombre },
+              { label: "Elaboración", valor: producto.elaboracionNombre },
+              { label: "Medida", valor: producto.medidaNombre },
             ].map(({ label, valor }) => (
               <div key={label} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "10px" }}>
                 <span style={{ color: "var(--gray)", textTransform: "uppercase", letterSpacing: "0.5px", fontSize: "11px" }}>{label}</span>
@@ -145,32 +184,30 @@ const ProductDetail = () => {
                 </button>
               </div>
             ) : (
-              <p style={{ fontSize: "13px", color: "var(--gray)", fontStyle: "italic" }}>
-                Este producto no está disponible actualmente.
-              </p>
+              <button
+                disabled
+                style={{ width: "100%", background: "var(--primary-dark)", color: "white", border: "none", padding: "16px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: "not-allowed", opacity: 0.7 }}
+              >
+                Sin stock
+              </button>
             )
           )}
         </div>
       </div>
+
       {/* Productos similares */}
-      {(() => {
-        const similares = productos
-          .filter((p) => p.id !== producto.id && (p.colorId === producto.colorId || p.cepaId === producto.cepaId))
-          .slice(0, 3);
-        if (similares.length === 0) return null;
-        return (
-          <div style={{ marginTop: "64px", borderTop: "1px solid var(--border)", paddingTop: "48px" }}>
-            <p style={{ fontFamily: "var(--font-serif)", fontSize: "24px", marginBottom: "32px" }}>
-              Productos similares
-            </p>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px" }}>
-              {similares.map((p) => (
-                <ProductCard key={p.id} producto={p} colores={colores} cepas={cepas} />
-              ))}
-            </div>
+      {similares.length > 0 && (
+        <div style={{ marginTop: "64px", borderTop: "1px solid var(--border)", paddingTop: "48px" }}>
+          <p style={{ fontFamily: "var(--font-serif)", fontSize: "24px", marginBottom: "32px" }}>
+            Productos similares
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px" }}>
+            {similares.map((p) => (
+              <ProductCard key={p.id} producto={p} />
+            ))}
           </div>
-        );
-      })()}
+        </div>
+      )}
     </div>
   );
 };

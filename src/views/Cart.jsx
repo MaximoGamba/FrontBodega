@@ -1,26 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
 import CartItem from "../components/CartItem";
+import { toast } from "react-toastify";
 
 const Cart = () => {
-  const { carrito, setCarrito } = useCart();
-  const { usuario } = useAuth();
+  const { carrito, cambiarCantidad, quitarItem, vaciarCarrito } = useCart();
   const navigate = useNavigate();
-
-  const cambiarCantidad = (id, delta) => {
-    setCarrito(
-      carrito
-        .map((item) =>
-          item.id === id ? { ...item, cantidad: item.cantidad + delta } : item
-        )
-        .filter((item) => item.cantidad > 0)
-    );
-  };
-
-  const eliminar = (id) => {
-    setCarrito(carrito.filter((item) => item.id !== id));
-  };
 
   const subtotal = carrito.reduce((acc, item) => {
     const precioFinal =
@@ -51,12 +36,33 @@ const Cart = () => {
 
   return (
     <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 24px" }}>
-      <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "36px", marginBottom: "8px" }}>
-        Tu carrito
-      </h1>
-      <p style={{ color: "var(--gray)", fontSize: "13px", marginBottom: "40px", borderBottom: "2px solid var(--primary)", paddingBottom: "16px" }}>
-        {carrito.reduce((a, i) => a + i.cantidad, 0)} producto(s)
-      </p>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", borderBottom: "2px solid var(--primary)", paddingBottom: "16px", marginBottom: "40px" }}>
+        <div>
+          <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "36px", marginBottom: "4px" }}>Tu carrito</h1>
+          <p style={{ color: "var(--gray)", fontSize: "13px" }}>
+            {carrito.reduce((a, i) => a + i.cantidad, 0)} producto(s)
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            toast(
+              ({ closeToast }) => (
+                <div>
+                  <p style={{ margin: "0 0 10px", fontSize: "14px" }}>¿Vaciar el carrito?</p>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button onClick={() => { vaciarCarrito(); closeToast(); }} style={{ background: "var(--primary)", color: "white", border: "none", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Vaciar</button>
+                    <button onClick={closeToast} style={{ background: "none", border: "1px solid #ccc", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Cancelar</button>
+                  </div>
+                </div>
+              ),
+              { autoClose: false, closeButton: false, toastId: "vaciar-carrito" }
+            );
+          }}
+          style={{ background: "none", border: "1px solid #e0b0b0", color: "#c0392b", padding: "7px 16px", fontSize: "11px", letterSpacing: "1px", textTransform: "uppercase", cursor: "pointer" }}
+        >
+          Vaciar carrito
+        </button>
+      </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "48px", alignItems: "start" }}>
         {/* Lista de productos */}
@@ -66,7 +72,7 @@ const Cart = () => {
               key={item.id}
               item={item}
               onCambiarCantidad={cambiarCantidad}
-              onEliminar={eliminar}
+              onEliminar={quitarItem}
             />
           ))}
         </div>
@@ -96,7 +102,7 @@ const Cart = () => {
           </div>
 
           <button
-            onClick={() => navigate(usuario ? "/checkout" : "/login", !usuario ? { state: { from: "/" } } : undefined)}
+            onClick={() => navigate("/checkout")}
             style={{ display: "block", width: "100%", marginTop: "24px", background: "var(--primary)", color: "white", border: "none", padding: "14px", textAlign: "center", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: "pointer" }}
           >
             Finalizar compra
@@ -108,6 +114,14 @@ const Cart = () => {
           >
             Seguir comprando
           </Link>
+
+          <p style={{ marginTop: "24px", fontSize: "12px", color: "var(--gray)", textAlign: "center", lineHeight: "1.6", borderTop: "1px solid var(--border)", paddingTop: "20px" }}>
+            ¿Tenés alguna consulta?{" "}
+            <Link to="/contacto" style={{ color: "var(--primary)", textDecoration: "none" }}>
+              Contactanos
+            </Link>
+            , con gusto te ayudamos.
+          </p>
         </div>
       </div>
     </div>

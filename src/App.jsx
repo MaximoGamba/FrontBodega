@@ -13,6 +13,8 @@ import Perfil from "./views/Perfil";
 import Sale from "./views/Sale";
 import Historia from "./views/Historia";
 import Contacto from "./views/Contacto";
+import AdminRoute from "./components/AdminRoute";
+import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
   return (
@@ -23,11 +25,11 @@ function App() {
         <Route path="/productos" element={<Products />} />
         <Route path="/productos/:id" element={<ProductDetail />} />
         <Route path="/carrito" element={<Cart />} />
-        <Route path="/checkout" element={<Checkout />} />
-        <Route path="/admin" element={<Admin />} />
+        <Route path="/checkout" element={<PrivateRoute><Checkout /></PrivateRoute>} />
+        <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
         <Route path="/login" element={<Login />} />
         <Route path="/registro" element={<Registro />} />
-        <Route path="/perfil" element={<Perfil />} />
+        <Route path="/perfil" element={<PrivateRoute><Perfil /></PrivateRoute>} />
         <Route path="/ofertas" element={<Sale />} />
         <Route path="/historia" element={<Historia />} />
         <Route path="/contacto" element={<Contacto />} />

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { crearPedido, crearEnvio, crearPago, actualizarEstadoPedido } from "../services/api";
 
 const pasos = ["Envío", "Pago", "Confirmación"];
 
@@ -23,39 +24,70 @@ const labelStyle = {
   marginBottom: "6px",
 };
 
+// ── Helpers de formato ────────────────────────────────────────────────────────
+
+const soloLetras = (val) => val.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, "");
+
+const soloNumerosYSignos = (val) => val.replace(/[^0-9+\-\s]/g, "");
+
+const soloNumeros = (val) => val.replace(/\D/g, "");
+
+const formatearTarjeta = (val) => {
+  const digits = val.replace(/\D/g, "").slice(0, 16);
+  return digits.replace(/(.{4})/g, "$1 ").trim();
+};
+
+const formatearVencimiento = (val, prev) => {
+  const digits = val.replace(/\D/g, "").slice(0, 4);
+  if (digits.length >= 3) return digits.slice(0, 2) + "/" + digits.slice(2);
+  // Si borra el '/', eliminar también el último dígito del mes
+  if (prev.endsWith("/") && val.length < prev.length) return digits.slice(0, 1);
+  return digits;
+};
+
+// ── Validaciones ──────────────────────────────────────────────────────────────
+
+const validarEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+
+const validarVencimiento = (val) => {
+  if (!/^\d{2}\/\d{2}$/.test(val)) return false;
+  const mes = parseInt(val.slice(0, 2), 10);
+  const anio = parseInt("20" + val.slice(3), 10);
+  if (mes < 1 || mes > 12) return false;
+  const ahora = new Date();
+  const expiry = new Date(anio, mes - 1, 1);
+  return expiry >= new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 const Checkout = () => {
-  const { carrito, setCarrito } = useCart();
+  const { carrito, vaciarCarrito } = useCart();
   const [paso, setPaso] = useState(0);
 
   const [envio, setEnvio] = useState({
-    nombre: "",
-    apellido: "",
-    email: "",
-    telefono: "",
-    direccion: "",
-    ciudad: "",
-    provincia: "",
-    codigoPostal: "",
+    nombre: "", apellido: "", email: "", telefono: "",
+    direccion: "", ciudad: "", provincia: "", codigoPostal: "",
   });
 
   const [pago, setPago] = useState({
-    metodo: "tarjeta",
-    nombreTarjeta: "",
-    numeroTarjeta: "",
-    vencimiento: "",
-    cvv: "",
+    metodo: "tarjeta", nombreTarjeta: "", numeroTarjeta: "", vencimiento: "", cvv: "",
   });
 
   const subtotal = carrito.reduce((acc, item) => {
-    const precioFinal =
-      item.discountPercent > 0
-        ? item.price * (1 - item.discountPercent / 100)
-        : item.price;
+    const precioFinal = item.discountPercent > 0
+      ? item.price * (1 - item.discountPercent / 100)
+      : item.price;
     return acc + precioFinal * item.cantidad;
   }, 0);
 
   const [errorEnvio, setErrorEnvio] = useState("");
   const [errorPago, setErrorPago] = useState("");
+  const [enviando, setEnviando] = useState(false);
+
+  // ── Handlers envío ──────────────────────────────────────────────────────────
+
+  const setE = (campo, valor) => setEnvio((prev) => ({ ...prev, [campo]: valor }));
 
   const avanzarEnvio = () => {
     const { nombre, apellido, email, telefono, direccion, ciudad, provincia, codigoPostal } = envio;
@@ -63,21 +95,70 @@ const Checkout = () => {
       setErrorEnvio("Completá todos los campos antes de continuar.");
       return;
     }
+    if (!validarEmail(email)) {
+      setErrorEnvio("El email no tiene un formato válido.");
+      return;
+    }
+    if (soloNumeros(telefono).length < 6) {
+      setErrorEnvio("El teléfono debe tener al menos 6 dígitos.");
+      return;
+    }
+    const cp = soloNumeros(codigoPostal);
+    if (cp.length < 4 || cp.length > 8) {
+      setErrorEnvio("El código postal debe tener entre 4 y 8 dígitos.");
+      return;
+    }
     setErrorEnvio("");
     setPaso(1);
   };
 
-  const confirmar = () => {
+  // ── Handlers pago ───────────────────────────────────────────────────────────
+
+  const setP = (campo, valor) => setPago((prev) => ({ ...prev, [campo]: valor }));
+
+  const confirmar = async () => {
     if (pago.metodo === "tarjeta") {
       const { nombreTarjeta, numeroTarjeta, vencimiento, cvv } = pago;
       if (!nombreTarjeta || !numeroTarjeta || !vencimiento || !cvv) {
-        setErrorPago("Completá los datos de la tarjeta antes de confirmar.");
+        setErrorPago("Completá todos los datos de la tarjeta.");
+        return;
+      }
+      if (soloNumeros(numeroTarjeta).length !== 16) {
+        setErrorPago("El número de tarjeta debe tener 16 dígitos.");
+        return;
+      }
+      if (!validarVencimiento(vencimiento)) {
+        setErrorPago("El vencimiento no es válido (formato MM/AA y fecha futura).");
+        return;
+      }
+      const cvvLen = soloNumeros(cvv).length;
+      if (cvvLen < 3 || cvvLen > 4) {
+        setErrorPago("El CVV debe tener 3 o 4 dígitos.");
         return;
       }
     }
     setErrorPago("");
-    setCarrito([]);
-    setPaso(2);
+    setEnviando(true);
+    try {
+      const items = carrito.map((item) => ({ wineId: item.id, quantity: item.cantidad }));
+      const orden = await crearPedido(items);
+      if (!orden?.id) throw new Error("No se pudo crear el pedido");
+      const pedidoId = orden.id;
+
+      await crearEnvio(pedidoId, `${envio.direccion}, ${envio.ciudad}, ${envio.provincia}`);
+      await crearPago(pedidoId, subtotal, pago.metodo.toUpperCase());
+
+      if (pago.metodo === "tarjeta") {
+        await actualizarEstadoPedido(pedidoId, "PAID");
+      }
+
+      vaciarCarrito();
+      setPaso(2);
+    } catch (err) {
+      setErrorPago(err.message || "Hubo un error al procesar tu pedido. Intentá de nuevo.");
+    } finally {
+      setEnviando(false);
+    }
   };
 
   return (
@@ -117,35 +198,78 @@ const Checkout = () => {
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
               <div>
                 <label style={labelStyle}>Nombre</label>
-                <input style={inputStyle} value={envio.nombre} onChange={e => setEnvio({ ...envio, nombre: e.target.value })} />
+                <input
+                  style={inputStyle}
+                  value={envio.nombre}
+                  maxLength={50}
+                  onChange={e => setE("nombre", soloLetras(e.target.value))}
+                />
               </div>
               <div>
                 <label style={labelStyle}>Apellido</label>
-                <input style={inputStyle} value={envio.apellido} onChange={e => setEnvio({ ...envio, apellido: e.target.value })} />
+                <input
+                  style={inputStyle}
+                  value={envio.apellido}
+                  maxLength={50}
+                  onChange={e => setE("apellido", soloLetras(e.target.value))}
+                />
               </div>
               <div>
                 <label style={labelStyle}>Email</label>
-                <input style={inputStyle} type="email" value={envio.email} onChange={e => setEnvio({ ...envio, email: e.target.value })} />
+                <input
+                  style={inputStyle}
+                  type="email"
+                  value={envio.email}
+                  maxLength={100}
+                  onChange={e => setE("email", e.target.value.trim())}
+                />
               </div>
               <div>
                 <label style={labelStyle}>Teléfono</label>
-                <input style={inputStyle} value={envio.telefono} onChange={e => setEnvio({ ...envio, telefono: e.target.value })} />
+                <input
+                  style={inputStyle}
+                  value={envio.telefono}
+                  maxLength={15}
+                  placeholder="+54 11 1234-5678"
+                  onChange={e => setE("telefono", soloNumerosYSignos(e.target.value))}
+                />
               </div>
               <div style={{ gridColumn: "1 / -1" }}>
                 <label style={labelStyle}>Dirección</label>
-                <input style={inputStyle} value={envio.direccion} onChange={e => setEnvio({ ...envio, direccion: e.target.value })} />
+                <input
+                  style={inputStyle}
+                  value={envio.direccion}
+                  maxLength={150}
+                  onChange={e => setE("direccion", e.target.value)}
+                />
               </div>
               <div>
                 <label style={labelStyle}>Ciudad</label>
-                <input style={inputStyle} value={envio.ciudad} onChange={e => setEnvio({ ...envio, ciudad: e.target.value })} />
+                <input
+                  style={inputStyle}
+                  value={envio.ciudad}
+                  maxLength={60}
+                  onChange={e => setE("ciudad", soloLetras(e.target.value))}
+                />
               </div>
               <div>
                 <label style={labelStyle}>Provincia</label>
-                <input style={inputStyle} value={envio.provincia} onChange={e => setEnvio({ ...envio, provincia: e.target.value })} />
+                <input
+                  style={inputStyle}
+                  value={envio.provincia}
+                  maxLength={60}
+                  onChange={e => setE("provincia", soloLetras(e.target.value))}
+                />
               </div>
               <div>
                 <label style={labelStyle}>Código Postal</label>
-                <input style={inputStyle} value={envio.codigoPostal} onChange={e => setEnvio({ ...envio, codigoPostal: e.target.value })} />
+                <input
+                  style={inputStyle}
+                  value={envio.codigoPostal}
+                  maxLength={8}
+                  placeholder="1234"
+                  onChange={e => setE("codigoPostal", soloNumeros(e.target.value))}
+                />
               </div>
             </div>
             {errorEnvio && (
@@ -193,19 +317,45 @@ const Checkout = () => {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={labelStyle}>Nombre en la tarjeta</label>
-                  <input style={inputStyle} value={pago.nombreTarjeta} onChange={e => setPago({ ...pago, nombreTarjeta: e.target.value })} />
+                  <input
+                    style={inputStyle}
+                    value={pago.nombreTarjeta}
+                    maxLength={60}
+                    onChange={e => setP("nombreTarjeta", soloLetras(e.target.value))}
+                  />
                 </div>
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={labelStyle}>Número de tarjeta</label>
-                  <input style={inputStyle} maxLength={19} value={pago.numeroTarjeta} onChange={e => setPago({ ...pago, numeroTarjeta: e.target.value })} />
+                  <input
+                    style={inputStyle}
+                    value={pago.numeroTarjeta}
+                    placeholder="0000 0000 0000 0000"
+                    maxLength={19}
+                    inputMode="numeric"
+                    onChange={e => setP("numeroTarjeta", formatearTarjeta(e.target.value))}
+                  />
                 </div>
                 <div>
                   <label style={labelStyle}>Vencimiento</label>
-                  <input style={inputStyle} placeholder="MM/AA" maxLength={5} value={pago.vencimiento} onChange={e => setPago({ ...pago, vencimiento: e.target.value })} />
+                  <input
+                    style={inputStyle}
+                    placeholder="MM/AA"
+                    maxLength={5}
+                    inputMode="numeric"
+                    value={pago.vencimiento}
+                    onChange={e => setP("vencimiento", formatearVencimiento(e.target.value, pago.vencimiento))}
+                  />
                 </div>
                 <div>
                   <label style={labelStyle}>CVV</label>
-                  <input style={inputStyle} maxLength={4} value={pago.cvv} onChange={e => setPago({ ...pago, cvv: e.target.value })} />
+                  <input
+                    style={inputStyle}
+                    value={pago.cvv}
+                    maxLength={4}
+                    inputMode="numeric"
+                    placeholder="123"
+                    onChange={e => setP("cvv", soloNumeros(e.target.value))}
+                  />
                 </div>
               </div>
             )}
@@ -234,9 +384,10 @@ const Checkout = () => {
               </button>
               <button
                 onClick={confirmar}
-                style={{ background: "var(--primary)", color: "white", border: "none", padding: "14px 40px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: "pointer" }}
+                disabled={enviando}
+                style={{ background: "var(--primary)", color: "white", border: "none", padding: "14px 40px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: enviando ? "not-allowed" : "pointer", opacity: enviando ? 0.7 : 1 }}
               >
-                Confirmar pedido
+                {enviando ? "Procesando..." : "Confirmar pedido"}
               </button>
             </div>
           </div>
@@ -275,10 +426,9 @@ const Resumen = ({ carrito, subtotal }) => (
       Tu pedido
     </p>
     {carrito.map((item) => {
-      const precioFinal =
-        item.discountPercent > 0
-          ? item.price * (1 - item.discountPercent / 100)
-          : item.price;
+      const precioFinal = item.discountPercent > 0
+        ? item.price * (1 - item.discountPercent / 100)
+        : item.price;
       return (
         <div key={item.id} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: "var(--gray)", marginBottom: "10px" }}>
           <span>{item.name} × {item.cantidad}</span>
