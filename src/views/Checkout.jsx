@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { useAuth } from "../context/AuthContext";
 import { crearPedido, crearEnvio, crearPago, actualizarEstadoPedido } from "../services/api";
 
 const pasos = ["Envío", "Pago", "Confirmación"];
@@ -63,7 +64,10 @@ const validarVencimiento = (val) => {
 
 const Checkout = () => {
   const { carrito, vaciarCarrito } = useCart();
+  const { usuario } = useAuth();
   const [paso, setPaso] = useState(0);
+
+  if (usuario?.rol === "admin") return <Navigate to="/" replace />;
 
   const [envio, setEnvio] = useState({
     nombre: "", apellido: "", email: "", telefono: "",

@@ -23,11 +23,13 @@ const CartItem = ({ item, onCambiarCantidad, onEliminar }) => {
       style={{ display: "grid", gridTemplateColumns: "100px 1fr auto", gap: "20px", alignItems: "center", padding: "20px 0", borderBottom: "1px solid var(--border)" }}
     >
       <Link to={`/productos/${item.id}`}>
-        <img
-          src={item.imagen}
-          alt={item.name}
-          style={{ width: "100px", height: "130px", objectFit: "cover" }}
-        />
+        <div style={{ width: "100px", height: "130px", background: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <img
+            src={item.imagen}
+            alt={item.name}
+            style={{ width: "100%", height: "100%", objectFit: "contain", padding: "8px" }}
+          />
+        </div>
       </Link>
 
       <div>

@@ -97,7 +97,7 @@ const ProductDetail = () => {
             <img
               src={imagenMostrada}
               alt={producto.name}
-              style={{ width: "100%", maxHeight: "560px", objectFit: "cover" }}
+              style={{ width: "100%", maxHeight: "560px", objectFit: "contain", background: "#ffffff", padding: "24px" }}
             />
             {producto.discountPercent > 0 && (
               <span style={{ position: "absolute", top: "16px", left: "16px", background: "var(--primary)", color: "white", fontSize: "12px", padding: "6px 12px", letterSpacing: "1px" }}>

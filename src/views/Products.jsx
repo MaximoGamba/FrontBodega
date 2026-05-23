@@ -82,8 +82,8 @@ const Products = () => {
     const c = [...lista];
     if (orden === "precio-asc") c.sort((a, b) => a.price - b.price);
     else if (orden === "precio-desc") c.sort((a, b) => b.price - a.price);
-    else if (orden === "nuevo") c.sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
-    else if (orden === "antiguo") c.sort((a, b) => (a.year ?? 0) - (b.year ?? 0));
+    else if (orden === "nuevo") c.sort((a, b) => b.id - a.id);
+    else if (orden === "antiguo") c.sort((a, b) => a.id - b.id);
     return c.sort((a, b) => (a.stock === 0 ? 1 : 0) - (b.stock === 0 ? 1 : 0));
   };
 
