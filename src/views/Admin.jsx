@@ -43,7 +43,7 @@ const ORDEN_ESTADO_COLOR = {
 };
 
 
-// ─── Sección Productos ───────────────────────────────────────────────────────
+// Sección Productos 
 
 const SeccionProductos = () => {
   const [productos, setProductos] = useState([]);
@@ -478,7 +478,7 @@ const SeccionProductos = () => {
   );
 };
 
-// ─── Sección Órdenes ─────────────────────────────────────────────────────────
+// Sección Órdenes 
 
 const FilaOrden = ({ pedido, onEstadoActualizado }) => {
   const [expandida, setExpandida] = useState(false);
@@ -709,7 +709,7 @@ const SeccionOrdenes = () => {
   );
 };
 
-// ─── Admin principal ──────────────────────────────────────────────────────────
+// Admin principal 
 
 const Admin = () => {
   const [pestana, setPestana] = useState("productos");

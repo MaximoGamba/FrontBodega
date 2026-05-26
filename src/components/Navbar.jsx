@@ -81,9 +81,6 @@ const Navbar = () => {
           />
         )}
         <LuSearch size={20} style={{ cursor: "pointer", color: "var(--neutral)" }} onClick={() => setSearchAbierto(!searchAbierto)} />
-        <Link to={usuario ? "/perfil" : "/login"} state={!usuario ? { from: "/perfil" } : undefined} style={{ color: "var(--neutral)" }}>
-          <LuUser size={20} />
-        </Link>
         {!esAdmin && (
           <Link to="/carrito" style={{ position: "relative", color: "var(--neutral)" }}>
             <LuShoppingBag size={20} />
@@ -94,27 +91,34 @@ const Navbar = () => {
             )}
           </Link>
         )}
-        {usuario && (
+        <Link to={usuario ? "/perfil" : "/login"} style={{ color: "var(--neutral)" }}>
+          <LuUser size={20} />
+        </Link>
+        {!usuario ? (
+          <Link to="/login" style={{ fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--neutral)", textDecoration: "none" }}>
+            Iniciar sesión
+          </Link>
+        ) : (
           <button
             onClick={() => {
-            toast(
-              ({ closeToast }) => (
-                <div>
-                  <p style={{ margin: "0 0 10px", fontSize: "14px" }}>¿Seguro que querés cerrar sesión?</p>
-                  <div style={{ display: "flex", gap: "8px" }}>
-                    <button
-                      onClick={() => { closeToast(); logout(); navigate("/"); toast.success("Sesión cerrada correctamente", { position: "top-center" }); }}
-                      style={{ background: "var(--primary)", color: "white", border: "none", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}
-                    >
-                      Cerrar sesión
-                    </button>
-                    <button onClick={closeToast} style={{ background: "none", border: "1px solid #ccc", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Cancelar</button>
+              toast(
+                ({ closeToast }) => (
+                  <div>
+                    <p style={{ margin: "0 0 10px", fontSize: "14px" }}>¿Seguro que querés cerrar sesión?</p>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        onClick={() => { closeToast(); logout(); navigate("/"); toast.success("Sesión cerrada correctamente", { position: "top-center" }); }}
+                        style={{ background: "var(--primary)", color: "white", border: "none", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}
+                      >
+                        Cerrar sesión
+                      </button>
+                      <button onClick={closeToast} style={{ background: "none", border: "1px solid #ccc", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Cancelar</button>
+                    </div>
                   </div>
-                </div>
-              ),
-              { position: "top-center", autoClose: false, closeButton: false, toastId: "cerrar-sesion" }
-            );
-          }}
+                ),
+                { position: "top-center", autoClose: false, closeButton: false, toastId: "cerrar-sesion" }
+              );
+            }}
             style={{ background: "none", border: "none", fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--neutral)", cursor: "pointer", padding: 0 }}
           >
             Cerrar sesión

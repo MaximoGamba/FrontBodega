@@ -37,10 +37,14 @@ const Login = () => {
       return;
     }
     setCargando(true);
-    const ok = await login(form.username, form.password);
+    const sesion = await login(form.username, form.password);
     setCargando(false);
-    if (ok) navigate(from);
-    else setError("Usuario o contraseña incorrectos.");
+    if (sesion) {
+      if (sesion.rol === "admin") navigate("/admin");
+      else navigate(from);
+    } else {
+      setError("Usuario o contraseña incorrectos.");
+    }
   };
 
   return (

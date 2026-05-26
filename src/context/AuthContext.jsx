@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("token", data.access_token);
       localStorage.setItem("usuario_sesion", JSON.stringify(sesion));
       setUsuario(sesion);
-      return true;
+      return sesion;
     } catch {
       return false;
     }
