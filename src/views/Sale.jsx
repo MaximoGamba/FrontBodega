@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { fetchVinos } from "../services/api";
-import ProductCard from "../components/ProductCard";
+import ProductCard from "../components/product/ProductCard";
 
 const Sale = () => {
   const [enOferta, setEnOferta] = useState([]);

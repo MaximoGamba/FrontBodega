@@ -13,7 +13,7 @@ createRoot(document.getElementById("root")).render(
     <AuthProvider>
       <CartProvider>
         <App />
-        <ToastContainer position="bottom-right" autoClose={3000} hideProgressBar={false} closeOnClick pauseOnHover />
+        <ToastContainer position="bottom-right" autoClose={4500} hideProgressBar={false} closeOnClick pauseOnHover />
       </CartProvider>
     </AuthProvider>
   </BrowserRouter>
