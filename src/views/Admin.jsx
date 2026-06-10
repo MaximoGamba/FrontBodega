@@ -1,6 +1,6 @@
 import { useState } from "react";
-import SeccionProductos from "../components/admin/SeccionProductos";
-import SeccionOrdenes from "../components/admin/SeccionOrdenes";
+import SeccionProductos from "../components/admin/productos/SeccionProductos";
+import SeccionOrdenes from "../components/admin/ordenes/SeccionOrdenes";
 
 const Admin = () => {
   const [pestana, setPestana] = useState("productos");

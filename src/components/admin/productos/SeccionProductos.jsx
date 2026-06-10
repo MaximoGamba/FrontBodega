@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { fetchColores, fetchCepas, fetchAzucares, fetchCrianzas, fetchElaboraciones, fetchMedidas } from "../../services/api";
+import { fetchColores, fetchCepas, fetchAzucares, fetchCrianzas, fetchElaboraciones, fetchMedidas } from "../../../services/api";
 import FormCrear from "./FormCrear";
 import FormEditar from "./FormEditar";
 import TablaProductos from "./TablaProductos";

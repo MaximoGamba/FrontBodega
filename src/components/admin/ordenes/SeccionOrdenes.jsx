@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { fetchPedidosAdmin } from "../../services/api";
-import { ORDEN_ESTADO_LABEL } from "./adminConstants";
+import { fetchPedidosAdmin } from "../../../services/api";
+import { ORDEN_ESTADO_LABEL } from "../adminConstants";
 import FilaOrden from "./FilaOrden";
 
 const SeccionOrdenes = () => {

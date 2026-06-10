@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { toast } from "react-toastify";
-import { fetchVinosAdmin, desactivarVinoAPI, reactivarVinoAPI } from "../../services/api";
+import { fetchVinosAdmin } from "../../../services/api";
+import BotonToggle from "./BotonToggle";
 
 const ITEMS_POR_PAGINA = 10;
 
@@ -23,49 +23,14 @@ const TablaProductos = ({ version, onEditar }) => {
       .catch(() => setCargando(false));
   }, [version]);
 
-  const toggleActivo = (producto) => {
-    const accion = producto.active !== false ? "desactivar" : "reactivar";
-    const toastId = `toggle-${producto.id}`;
-    if (toast.isActive(toastId)) return;
-    toast(
-      ({ closeToast }) => (
-        <div>
-          <p style={{ margin: "0 0 10px", fontSize: "14px" }}>¿Desea {accion} este producto?</p>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <button
-              onClick={async () => {
-                closeToast();
-                try {
-                  if (producto.active !== false) await desactivarVinoAPI(producto.id);
-                  else await reactivarVinoAPI(producto.id);
-                  setProductos((prev) => {
-                    const updated = prev.map((p) =>
-                      p.id === producto.id ? { ...p, active: producto.active === false } : p
-                    );
-                    return updated.sort((a, b) => {
-                      if (a.active === b.active) return b.id - a.id;
-                      return a.active === false ? 1 : -1;
-                    });
-                  });
-                } catch {
-                  toast.error(`Error al ${accion} el producto.`);
-                }
-              }}
-              style={{ background: "var(--primary)", color: "white", border: "none", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}
-            >
-              Confirmar
-            </button>
-            <button
-              onClick={closeToast}
-              style={{ background: "none", border: "1px solid #ccc", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      ),
-      { toastId, autoClose: false, closeButton: false }
-    );
+  const handleToggle = (id, nuevoActivo) => {
+    setProductos((prev) => {
+      const updated = prev.map((p) => p.id === id ? { ...p, active: nuevoActivo } : p);
+      return updated.sort((a, b) => {
+        if (a.active === b.active) return b.id - a.id;
+        return a.active === false ? 1 : -1;
+      });
+    });
   };
 
   if (cargando) {
@@ -111,18 +76,7 @@ const TablaProductos = ({ version, onEditar }) => {
                 >
                   Editar
                 </button>
-                <button
-                  onClick={() => toggleActivo(p)}
-                  style={{
-                    background: "none",
-                    border: p.active !== false ? "1px solid #e0b0b0" : "1px solid #b0c8b0",
-                    color: p.active !== false ? "#c0392b" : "#2d7a2d",
-                    padding: "6px 14px", fontSize: "11px", letterSpacing: "1px",
-                    textTransform: "uppercase", cursor: "pointer",
-                  }}
-                >
-                  {p.active !== false ? "Desactivar" : "Reactivar"}
-                </button>
+                <BotonToggle producto={p} onActualizado={handleToggle} />
               </td>
             </tr>
           ))}

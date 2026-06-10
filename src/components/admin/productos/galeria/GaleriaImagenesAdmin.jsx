@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { uploadImagen } from "../../services/api";
-import { labelStyle, errorStyle } from "./adminConstants";
+import { uploadImagen } from "../../../../services/api";
+import { labelStyle, errorStyle } from "../../adminConstants";
+import MiniaturaImagen from "./MiniaturaImagen";
 
 const GaleriaImagenesAdmin = ({ imagenInicial, productId, error, onChange }) => {
   const [mostrarGaleria, setMostrarGaleria] = useState(false);
@@ -98,28 +99,15 @@ const GaleriaImagenesAdmin = ({ imagenInicial, productId, error, onChange }) => 
 
       {imagenesSeleccionadas.length > 0 && (
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", marginBottom: "10px" }}>
-          {imagenesSeleccionadas.map((url) => {
-            const esPrincipal = imagenPrincipal === url;
-            return (
-              <div key={url} style={{ position: "relative", width: "72px", flexShrink: 0 }}>
-                <img src={url} alt="" style={{ width: "72px", height: "72px", objectFit: "cover", border: `2px solid ${esPrincipal ? "var(--primary)" : "var(--border)"}` }} />
-                {esPrincipal ? (
-                  <span style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "var(--primary)", color: "white", fontSize: "8px", textAlign: "center", padding: "2px", letterSpacing: "0.5px" }}>
-                    PRINCIPAL
-                  </span>
-                ) : (
-                  <button type="button" onClick={() => onSetPrincipal(url)}
-                    style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "rgba(0,0,0,0.5)", color: "white", border: "none", fontSize: "8px", cursor: "pointer", padding: "2px", letterSpacing: "0.5px" }}>
-                    PRINCIPAL
-                  </button>
-                )}
-                <button type="button" onClick={() => onEliminarImagen(url)}
-                  style={{ position: "absolute", top: "2px", right: "2px", background: "rgba(0,0,0,0.6)", color: "white", border: "none", width: "18px", height: "18px", cursor: "pointer", fontSize: "13px", lineHeight: "1", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  ×
-                </button>
-              </div>
-            );
-          })}
+          {imagenesSeleccionadas.map((url) => (
+            <MiniaturaImagen
+              key={url}
+              url={url}
+              esPrincipal={imagenPrincipal === url}
+              onSetPrincipal={onSetPrincipal}
+              onEliminar={onEliminarImagen}
+            />
+          ))}
         </div>
       )}
 
