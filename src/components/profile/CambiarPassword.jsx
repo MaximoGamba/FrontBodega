@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { actualizarUsuario } from "../../services/api";
+import { useDispatch } from "react-redux";
+import { actualizarUsuario } from "../../redux/slices/usuariosSlice";
 
 const labelStyle = {
   fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase",
@@ -12,6 +13,7 @@ const inputStyle = {
 };
 
 const CambiarPassword = ({ userId }) => {
+  const dispatch = useDispatch();
   const [abierto, setAbierto] = useState(false);
   const [form, setForm] = useState({ actual: "", nueva: "", confirmar: "" });
   const [guardando, setGuardando] = useState(false);
@@ -26,16 +28,12 @@ const CambiarPassword = ({ userId }) => {
     setGuardando(true);
     setError("");
     try {
-      const res = await actualizarUsuario(userId, { currentPassword: form.actual, password: form.nueva });
-      if (res?.error || res?.message?.toLowerCase().includes("incorrecta") || res?.message?.toLowerCase().includes("actual")) {
-        setError(res.message || "La contraseña actual es incorrecta.");
-        return;
-      }
+      await dispatch(actualizarUsuario({ userId, datos: { currentPassword: form.actual, password: form.nueva } })).unwrap();
       setExito(true);
       setForm({ actual: "", nueva: "", confirmar: "" });
       setTimeout(() => { setExito(false); setAbierto(false); }, 2000);
-    } catch {
-      setError("Error al cambiar la contraseña.");
+    } catch (err) {
+      setError(err || "Error al cambiar la contraseña.");
     } finally {
       setGuardando(false);
     }

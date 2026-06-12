@@ -1,11 +1,18 @@
-import { useState, useEffect } from "react";
-import { fetchVinos } from "../services/api";
+import { useState, useEffect, useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchVinos } from "../redux/slices/vinosSlice";
 import ProductCard from "../components/product/ProductCard";
 
 const Sale = () => {
-  const [enOferta, setEnOferta] = useState([]);
-  const [cargando, setCargando] = useState(true);
+  const dispatch = useDispatch();
+  const { items, loading: cargando } = useSelector((state) => state.vinos);
   const [orden, setOrden] = useState("");
+
+  useEffect(() => {
+    if (items.length === 0) dispatch(fetchVinos());
+  }, [dispatch]);
+
+  const enOferta = useMemo(() => items.filter((p) => p.discountPercent > 0), [items]);
 
   const ordenar = (lista) => {
     const c = [...lista];
@@ -15,15 +22,6 @@ const Sale = () => {
     else if (orden === "antiguo") c.sort((a, b) => (a.year ?? 0) - (b.year ?? 0));
     return c.sort((a, b) => (a.stock === 0 ? 1 : 0) - (b.stock === 0 ? 1 : 0));
   };
-
-  useEffect(() => {
-    fetchVinos()
-      .then((data) => {
-        setEnOferta(data.filter((p) => p.discountPercent > 0));
-        setCargando(false);
-      })
-      .catch(() => setCargando(false));
-  }, []);
 
   return (
     <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 40px" }}>

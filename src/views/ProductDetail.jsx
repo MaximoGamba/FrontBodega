@@ -1,9 +1,9 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useState, useEffect, useMemo } from "react";
-import { useCart } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
-import { fetchVino, fetchVinos } from "../services/api";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchVino, fetchVinos, limpiarDetalle } from "../redux/slices/vinosSlice";
+import { agregarItem } from "../redux/slices/carritoSlice";
 import GaleriaProducto from "../components/product/GaleriaProducto";
 import InfoProducto from "../components/product/InfoProducto";
 import AccionesProducto from "../components/product/AccionesProducto";
@@ -11,14 +11,12 @@ import ProductosSimilares from "../components/product/ProductosSimilares";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const { agregarItem } = useCart();
-  const { usuario } = useAuth();
+  const dispatch = useDispatch();
+  const { detalle: producto, items: todosVinos, loading: cargando, error } = useSelector((state) => state.vinos);
+  const usuario = useSelector((state) => state.auth.usuario);
   const navigate = useNavigate();
   const esAdmin = usuario?.rol === "admin";
   const [cantidad, setCantidad] = useState(1);
-  const [producto, setProducto] = useState(null);
-  const [similares, setSimilares] = useState([]);
-  const [cargando, setCargando] = useState(true);
   const [imagenActual, setImagenActual] = useState(null);
 
   const todasImagenes = useMemo(() => {
@@ -29,26 +27,20 @@ const ProductDetail = () => {
     } catch { return [producto.imagen].filter(Boolean); }
   }, [producto]);
 
-  useEffect(() => {
-    setCargando(true);
-    setSimilares([]);
-    let cancelado = false;
-    Promise.all([fetchVino(id), fetchVinos()])
-      .then(([data, todos]) => {
-        if (cancelado) return;
-        setProducto(data);
-        setCargando(false);
-        setSimilares(
-          todos
-            .filter((p) => p.id !== data.id && (p.colorId === data.colorId || p.cepaId === data.cepaId))
-            .slice(0, 3)
-        );
-      })
-      .catch(() => { if (!cancelado) setCargando(false); });
-    return () => { cancelado = true; };
-  }, [id]);
+  const similares = useMemo(() => {
+    if (!producto) return [];
+    return todosVinos
+      .filter((p) => p.id !== producto.id && (p.colorId === producto.colorId || p.cepaId === producto.cepaId))
+      .slice(0, 3);
+  }, [producto, todosVinos]);
 
-  if (cargando) return (
+  useEffect(() => {
+    dispatch(fetchVino(id));
+    if (todosVinos.length === 0) dispatch(fetchVinos());
+    return () => dispatch(limpiarDetalle());
+  }, [id, dispatch]);
+
+  if (cargando || (!producto && !error)) return (
     <div style={{ textAlign: "center", padding: "80px 24px" }}>
       <p style={{ color: "var(--gray)", fontSize: "16px" }}>Cargando...</p>
     </div>
@@ -72,7 +64,7 @@ const ProductDetail = () => {
 
   const agregarAlCarrito = () => {
     if (!usuario) { navigate("/login"); return; }
-    agregarItem(producto, cantidad);
+    dispatch(agregarItem({ producto, cantidad }));
     toast.success(`${producto.name} agregado al carrito`, { toastId: `agregar-${producto.id}` });
   };
 

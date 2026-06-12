@@ -1,26 +1,21 @@
 import { useState, useEffect } from "react";
-import { fetchPedidosAdmin } from "../../../services/api";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchPedidosAdmin } from "../../../redux/slices/pedidosSlice";
 import { ORDEN_ESTADO_LABEL } from "../adminConstants";
 import FilaOrden from "./FilaOrden";
 
 const SeccionOrdenes = () => {
-  const [pedidos, setPedidos] = useState([]);
-  const [cargando, setCargando] = useState(true);
+  const dispatch = useDispatch();
+  const { pedidosAdmin: pedidos, loading: cargando } = useSelector((state) => state.pedidos);
   const [filtroEstado, setFiltroEstado] = useState("TODOS");
 
   useEffect(() => {
-    fetchPedidosAdmin()
-      .then((data) => { setPedidos(Array.isArray(data) ? [...data].reverse() : []); setCargando(false); })
-      .catch(() => setCargando(false));
-  }, []);
+    if (pedidos.length === 0) dispatch(fetchPedidosAdmin());
+  }, [dispatch]);
 
   const pedidosFiltrados = filtroEstado === "TODOS"
     ? pedidos
     : pedidos.filter((p) => p.status === filtroEstado);
-
-  const handleEstadoActualizado = (actualizado) => {
-    setPedidos((prev) => prev.map((p) => p.id === actualizado.id ? { ...p, status: actualizado.status } : p));
-  };
 
   return (
     <>
@@ -62,7 +57,7 @@ const SeccionOrdenes = () => {
           </thead>
           <tbody>
             {pedidosFiltrados.map((pedido) => (
-              <FilaOrden key={pedido.id} pedido={pedido} onEstadoActualizado={handleEstadoActualizado} />
+              <FilaOrden key={pedido.id} pedido={pedido} />
             ))}
           </tbody>
         </table>

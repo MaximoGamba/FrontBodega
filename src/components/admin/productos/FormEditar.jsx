@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import { actualizarVino } from "../../../services/api";
+import { useDispatch } from "react-redux";
+import { actualizarVino } from "../../../redux/slices/vinosSlice";
 import { validarProducto } from "../../../utils/validators";
 import CamposProducto from "./CamposProducto";
 import GaleriaImagenesAdmin from "./galeria/GaleriaImagenesAdmin";
+import ModalConfirmar from "../../ModalConfirmar";
 
 const FormEditar = ({ producto, opciones, onGuardado, onCerrar }) => {
+  const dispatch = useDispatch();
   const [form, setForm] = useState({ ...producto });
   const [errores, setErrores] = useState({});
   const [guardando, setGuardando] = useState(false);
   const [imageUrl, setImageUrl] = useState(producto.imageUrl || producto.imagen || "");
   const [imagenesSeleccionadas, setImagenesSeleccionadas] = useState([]);
   const [isDirty, setIsDirty] = useState(false);
+  const [modalDescartar, setModalDescartar] = useState(false);
 
   const handleChange = (campo, valor) => {
     setIsDirty(true);
@@ -28,18 +32,7 @@ const FormEditar = ({ producto, opciones, onGuardado, onCerrar }) => {
 
   const confirmarCerrar = () => {
     if (!isDirty) { onCerrar(); return; }
-    toast(
-      ({ closeToast }) => (
-        <div>
-          <p style={{ margin: "0 0 10px", fontSize: "14px" }}>¿Descartar los cambios sin guardar?</p>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <button onClick={() => { closeToast(); onCerrar(); }} style={{ background: "#c0392b", color: "white", border: "none", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Descartar</button>
-            <button onClick={closeToast} style={{ background: "none", border: "1px solid #ccc", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Seguir editando</button>
-          </div>
-        </div>
-      ),
-      { autoClose: false, closeButton: false }
-    );
+    setModalDescartar(true);
   };
 
   const guardar = async () => {
@@ -57,7 +50,7 @@ const FormEditar = ({ producto, opciones, onGuardado, onCerrar }) => {
     };
     setGuardando(true);
     try {
-      await actualizarVino(producto.id, datos);
+      await dispatch(actualizarVino({ id: producto.id, datos })).unwrap();
       const todasImagenes = [...new Set([imageUrl, ...imagenesSeleccionadas])].filter(Boolean);
       if (todasImagenes.length > 0)
         localStorage.setItem(`bodega_imgs_${producto.id}`, JSON.stringify(todasImagenes));
@@ -96,6 +89,16 @@ const FormEditar = ({ producto, opciones, onGuardado, onCerrar }) => {
           Cancelar
         </button>
       </div>
+
+      <ModalConfirmar
+        visible={modalDescartar}
+        mensaje="¿Descartar los cambios sin guardar?"
+        textoConfirmar="Descartar"
+        textoCancelar="Seguir editando"
+        peligroso
+        onConfirmar={() => { setModalDescartar(false); onCerrar(); }}
+        onCancelar={() => setModalDescartar(false)}
+      />
     </div>
   );
 };

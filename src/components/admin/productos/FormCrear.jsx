@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { crearVino, mapVino } from "../../../services/api";
+import { useDispatch } from "react-redux";
+import { crearVino } from "../../../redux/slices/vinosSlice";
 import { validarProducto } from "../../../utils/validators";
 import CamposProducto from "./CamposProducto";
 import GaleriaImagenesAdmin from "./galeria/GaleriaImagenesAdmin";
+import ModalConfirmar from "../../ModalConfirmar";
 
 const campoVacio = {
   name: "", winery: "", year: "", price: "", stock: "",
@@ -12,12 +14,14 @@ const campoVacio = {
 };
 
 const FormCrear = ({ opciones, onGuardado, onCerrar }) => {
+  const dispatch = useDispatch();
   const [form, setForm] = useState(null);
   const [errores, setErrores] = useState({});
   const [guardando, setGuardando] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
   const [imagenesSeleccionadas, setImagenesSeleccionadas] = useState([]);
   const [isDirty, setIsDirty] = useState(false);
+  const [modalDescartar, setModalDescartar] = useState(false);
 
   useEffect(() => {
     if (!opciones) return;
@@ -45,18 +49,7 @@ const FormCrear = ({ opciones, onGuardado, onCerrar }) => {
 
   const confirmarCerrar = () => {
     if (!isDirty) { onCerrar(); return; }
-    toast(
-      ({ closeToast }) => (
-        <div>
-          <p style={{ margin: "0 0 10px", fontSize: "14px" }}>¿Descartar los cambios sin guardar?</p>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <button onClick={() => { closeToast(); onCerrar(); }} style={{ background: "#c0392b", color: "white", border: "none", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Descartar</button>
-            <button onClick={closeToast} style={{ background: "none", border: "1px solid #ccc", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Seguir editando</button>
-          </div>
-        </div>
-      ),
-      { autoClose: false, closeButton: false }
-    );
+    setModalDescartar(true);
   };
 
   const guardar = async () => {
@@ -74,8 +67,8 @@ const FormCrear = ({ opciones, onGuardado, onCerrar }) => {
     };
     setGuardando(true);
     try {
-      const nuevo = await crearVino(datos);
-      const idProducto = mapVino(nuevo).id;
+      const nuevo = await dispatch(crearVino(datos)).unwrap();
+      const idProducto = nuevo.id;
       const todasImagenes = [...new Set([imageUrl, ...imagenesSeleccionadas])].filter(Boolean);
       if (idProducto && todasImagenes.length > 0)
         localStorage.setItem(`bodega_imgs_${idProducto}`, JSON.stringify(todasImagenes));
@@ -114,6 +107,16 @@ const FormCrear = ({ opciones, onGuardado, onCerrar }) => {
           Cancelar
         </button>
       </div>
+
+      <ModalConfirmar
+        visible={modalDescartar}
+        mensaje="¿Descartar los cambios sin guardar?"
+        textoConfirmar="Descartar"
+        textoCancelar="Seguir editando"
+        peligroso
+        onConfirmar={() => { setModalDescartar(false); onCerrar(); }}
+        onCancelar={() => setModalDescartar(false)}
+      />
     </div>
   );
 };

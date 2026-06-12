@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import { useCart } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
-import { crearPedido, crearEnvio, crearPago, actualizarEstadoPedido } from "../services/api";
+import { useSelector, useDispatch } from "react-redux";
+import { procesarCheckout, resetCheckout } from "../redux/slices/pedidosSlice";
+import { vaciarCarrito } from "../redux/slices/carritoSlice";
 import { validarEmail, validarVencimiento } from "../utils/validators";
 import { soloNumeros } from "../utils/formatters";
 import IndicadorPasos from "../components/checkout/IndicadorPasos";
@@ -11,8 +11,10 @@ import PasoPago from "../components/checkout/PasoPago";
 import PasoConfirmacion from "../components/checkout/PasoConfirmacion";
 
 const Checkout = () => {
-  const { carrito, vaciarCarrito } = useCart();
-  const { usuario } = useAuth();
+  const dispatch = useDispatch();
+  const carrito = useSelector((state) => state.carrito.items);
+  const usuario = useSelector((state) => state.auth.usuario);
+  const { checkoutLoading: enviando, checkoutExitoso, error: errorCheckout } = useSelector((state) => state.pedidos);
   const [paso, setPaso] = useState(0);
   const [envio, setEnvio] = useState({
     nombre: "", apellido: "", email: "", telefono: "",
@@ -23,7 +25,17 @@ const Checkout = () => {
   });
   const [errorEnvio, setErrorEnvio] = useState("");
   const [errorPago, setErrorPago] = useState("");
-  const [enviando, setEnviando] = useState(false);
+
+  useEffect(() => {
+    if (checkoutExitoso) {
+      dispatch(vaciarCarrito());
+      setPaso(2);
+    }
+  }, [checkoutExitoso, dispatch]);
+
+  useEffect(() => {
+    return () => dispatch(resetCheckout());
+  }, [dispatch]);
 
   if (usuario?.rol === "admin") return <Navigate to="/" replace />;
 
@@ -50,7 +62,7 @@ const Checkout = () => {
     setPaso(1);
   };
 
-  const confirmar = async () => {
+  const confirmar = () => {
     if (pago.metodo === "tarjeta") {
       const { nombreTarjeta, numeroTarjeta, vencimiento, cvv } = pago;
       if (!nombreTarjeta || !numeroTarjeta || !vencimiento || !cvv) {
@@ -68,22 +80,7 @@ const Checkout = () => {
       }
     }
     setErrorPago("");
-    setEnviando(true);
-    try {
-      const items = carrito.map((item) => ({ wineId: item.id, quantity: item.cantidad }));
-      const orden = await crearPedido(items);
-      if (!orden?.id) throw new Error("No se pudo crear el pedido");
-      const pedidoId = orden.id;
-      await crearEnvio(pedidoId, `${envio.direccion}, ${envio.ciudad}, ${envio.provincia}`);
-      await crearPago(pedidoId, subtotal, pago.metodo.toUpperCase());
-      if (pago.metodo === "tarjeta") await actualizarEstadoPedido(pedidoId, "PAID");
-      vaciarCarrito();
-      setPaso(2);
-    } catch (err) {
-      setErrorPago(err.message || "Hubo un error al procesar tu pedido. Intentá de nuevo.");
-    } finally {
-      setEnviando(false);
-    }
+    dispatch(procesarCheckout({ carrito, subtotal, envio, pago }));
   };
 
   return (
@@ -105,7 +102,7 @@ const Checkout = () => {
         <PasoPago
           pago={pago}
           setPago={setPago}
-          errorPago={errorPago}
+          errorPago={errorPago || errorCheckout}
           enviando={enviando}
           onVolver={() => setPaso(0)}
           onConfirmar={confirmar}

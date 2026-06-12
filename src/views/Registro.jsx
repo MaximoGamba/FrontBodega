@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useDispatch } from "react-redux";
+import { registrarThunk } from "../redux/slices/authSlice";
 import RegisterForm from "../components/auth/RegisterForm";
 
 const Registro = () => {
-  const { registrar } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || "/";
@@ -20,10 +21,11 @@ const Registro = () => {
     }
     if (password !== confirmar) { setError("Las contraseñas no coinciden."); return; }
     setCargando(true);
-    const ok = await registrar(firstname, lastname, email, username, password);
+    setError("");
+    const result = await dispatch(registrarThunk({ firstname, lastname, email, username, password }));
     setCargando(false);
-    if (ok) navigate(from);
-    else setError("Error al registrarse. El usuario o email puede estar en uso.");
+    if (registrarThunk.fulfilled.match(result)) navigate(from);
+    else setError(result.error?.message || "Error al registrarse. El usuario o email puede estar en uso.");
   };
 
   return <RegisterForm form={form} setForm={setForm} error={error} cargando={cargando} onSubmit={handleSubmit} />;

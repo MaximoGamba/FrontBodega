@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
-import { fetchVinos } from "../services/api";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchVinos } from "../redux/slices/vinosSlice";
 import FiltrosProductos from "../components/filters/FiltrosProductos";
 import OrdenadorProductos from "../components/products/OrdenadorProductos";
 import GrillaProductos from "../components/products/GrillaProductos";
@@ -20,19 +21,16 @@ const FILTROS_INICIALES = {
 };
 
 const Products = () => {
-  const [todos, setTodos] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState("");
+  const dispatch = useDispatch();
+  const { items: todos, loading: cargando, error } = useSelector((state) => state.vinos);
   const [searchParams] = useSearchParams();
   const busqueda = searchParams.get("q") || "";
   const [orden, setOrden] = useState("");
   const [filtros, setFiltros] = useState(FILTROS_INICIALES);
 
   useEffect(() => {
-    fetchVinos()
-      .then((data) => { setTodos(data); setCargando(false); })
-      .catch(() => { setError("No se pudieron cargar los productos."); setCargando(false); });
-  }, []);
+    if (todos.length === 0) dispatch(fetchVinos());
+  }, [dispatch]);
 
   const catalogos = useMemo(() => ({
     colorId:       unicos(todos, "colorId",       "colorNombre"),

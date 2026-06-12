@@ -1,37 +1,20 @@
-import { useState, useEffect } from "react";
-import { fetchVinosAdmin } from "../../../services/api";
+import { useState, useMemo } from "react";
+import { useSelector } from "react-redux";
 import BotonToggle from "./BotonToggle";
 
 const ITEMS_POR_PAGINA = 10;
 
-const TablaProductos = ({ version, onEditar }) => {
-  const [productos, setProductos] = useState([]);
-  const [cargando, setCargando] = useState(true);
+const TablaProductos = ({ onEditar }) => {
+  const { itemsAdmin, loading: cargando } = useSelector((state) => state.vinos);
   const [pagina, setPagina] = useState(1);
 
-  useEffect(() => {
-    setCargando(true);
-    setPagina(1);
-    fetchVinosAdmin()
-      .then((vinos) => {
-        setProductos([...vinos].sort((a, b) => {
-          if (a.active === b.active) return b.id - a.id;
-          return a.active === false ? 1 : -1;
-        }));
-        setCargando(false);
-      })
-      .catch(() => setCargando(false));
-  }, [version]);
-
-  const handleToggle = (id, nuevoActivo) => {
-    setProductos((prev) => {
-      const updated = prev.map((p) => p.id === id ? { ...p, active: nuevoActivo } : p);
-      return updated.sort((a, b) => {
-        if (a.active === b.active) return b.id - a.id;
-        return a.active === false ? 1 : -1;
-      });
-    });
-  };
+  const productos = useMemo(
+    () => [...itemsAdmin].sort((a, b) => {
+      if (a.active === b.active) return b.id - a.id;
+      return a.active === false ? 1 : -1;
+    }),
+    [itemsAdmin]
+  );
 
   if (cargando) {
     return <p style={{ color: "var(--gray)", textAlign: "center", padding: "40px" }}>Cargando...</p>;
@@ -76,7 +59,7 @@ const TablaProductos = ({ version, onEditar }) => {
                 >
                   Editar
                 </button>
-                <BotonToggle producto={p} onActualizado={handleToggle} />
+                <BotonToggle producto={p} />
               </td>
             </tr>
           ))}

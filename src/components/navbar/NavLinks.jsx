@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
+import { useSelector } from "react-redux";
 
 const LINKS = [
   { label: "Inicio",          to: "/" },
@@ -11,7 +11,7 @@ const LINKS = [
 
 const NavLinks = () => {
   const { pathname } = useLocation();
-  const { usuario } = useAuth();
+  const usuario = useSelector((state) => state.auth.usuario);
   const esAdmin = usuario?.rol === "admin";
 
   const linkStyle = (to) => ({

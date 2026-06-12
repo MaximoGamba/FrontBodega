@@ -1,3 +1,7 @@
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { fetchPedidosUsuario } from "../../redux/slices/pedidosSlice";
+
 const ESTADO_LABEL = {
   CREATED: "Pendiente",
   PAID: "Pagado",
@@ -14,7 +18,15 @@ const ESTADO_COLOR = {
   CANCELLED: "#c0392b",
 };
 
-const HistorialPedidos = ({ pedidos, cargando }) => {
+const HistorialPedidos = () => {
+  const dispatch = useDispatch();
+  const usuario = useSelector((state) => state.auth.usuario);
+  const { pedidosUsuario: pedidos, loading: cargando } = useSelector((state) => state.pedidos);
+
+  useEffect(() => {
+    if (usuario?.id) dispatch(fetchPedidosUsuario(usuario.id));
+  }, [dispatch, usuario?.id]);
+
   if (cargando) {
     return <p style={{ color: "var(--gray)", fontSize: "14px" }}>Cargando pedidos...</p>;
   }

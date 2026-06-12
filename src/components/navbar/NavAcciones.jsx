@@ -1,36 +1,27 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { toast } from "react-toastify";
 import { LuUser, LuShoppingBag } from "react-icons/lu";
-import { useCart } from "../../context/CartContext";
-import { useAuth } from "../../context/AuthContext";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../../redux/slices/authSlice";
+import { limpiarCarritoAlLogout } from "../../redux/slices/carritoSlice";
+import ModalConfirmar from "../ModalConfirmar";
 
 const NavAcciones = () => {
-  const { carrito } = useCart();
-  const { usuario, logout } = useAuth();
+  const dispatch = useDispatch();
+  const usuario = useSelector((state) => state.auth.usuario);
+  const carrito = useSelector((state) => state.carrito.items);
   const navigate = useNavigate();
   const esAdmin = usuario?.rol === "admin";
   const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
 
-  const confirmarLogout = () => {
-    toast(
-      ({ closeToast }) => (
-        <div>
-          <p style={{ margin: "0 0 10px", fontSize: "14px" }}>¿Seguro que querés cerrar sesión?</p>
-          <div style={{ display: "flex", gap: "8px" }}>
-            <button
-              onClick={() => { closeToast(); logout(); navigate("/"); toast.success("Sesión cerrada correctamente", { position: "top-center" }); }}
-              style={{ background: "var(--primary)", color: "white", border: "none", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}
-            >
-              Cerrar sesión
-            </button>
-            <button onClick={closeToast} style={{ background: "none", border: "1px solid #ccc", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>
-              Cancelar
-            </button>
-          </div>
-        </div>
-      ),
-      { position: "top-center", autoClose: false, closeButton: false, toastId: "cerrar-sesion" }
-    );
+  const [modalLogout, setModalLogout] = useState(false);
+
+  const confirmarLogout = () => setModalLogout(true);
+
+  const handleLogout = () => {
+    dispatch(limpiarCarritoAlLogout());
+    dispatch(logout());
+    navigate("/");
   };
 
   return (
@@ -60,6 +51,13 @@ const NavAcciones = () => {
           Cerrar sesión
         </button>
       )}
+      <ModalConfirmar
+        visible={modalLogout}
+        mensaje="¿Seguro que querés cerrar sesión?"
+        textoConfirmar="Cerrar sesión"
+        onConfirmar={() => { setModalLogout(false); handleLogout(); }}
+        onCancelar={() => setModalLogout(false)}
+      />
     </>
   );
 };

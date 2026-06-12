@@ -1,11 +1,12 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useCart } from "../../context/CartContext";
-import { useAuth } from "../../context/AuthContext";
+import { useSelector, useDispatch } from "react-redux";
+import { agregarItem } from "../../redux/slices/carritoSlice";
 import { toast } from "react-toastify";
 
 const ProductCard = ({ producto }) => {
-  const { carrito, agregarItem } = useCart();
-  const { usuario } = useAuth();
+  const dispatch = useDispatch();
+  const usuario = useSelector((state) => state.auth.usuario);
+  const carrito = useSelector((state) => state.carrito.items);
   const navigate = useNavigate();
   const esAdmin = usuario?.rol === "admin";
   const enCarrito = carrito.find((i) => i.id === producto.id)?.cantidad ?? 0;
@@ -17,7 +18,7 @@ const ProductCard = ({ producto }) => {
 
   const agregarAlCarrito = () => {
     if (!usuario) { navigate("/login"); return; }
-    agregarItem(producto, 1);
+    dispatch(agregarItem({ producto, cantidad: 1 }));
     toast.success(`${producto.name} agregado al carrito`, { toastId: `agregar-${producto.id}` });
   };
 

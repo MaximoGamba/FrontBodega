@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { actualizarUsuario } from "../../services/api";
+import { useDispatch } from "react-redux";
+import { actualizarUsuario } from "../../redux/slices/usuariosSlice";
 
 const labelStyle = {
   fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase",
@@ -12,6 +13,7 @@ const inputStyle = {
 };
 
 const CampoEditable = ({ label, valor, campo, userId, onGuardado }) => {
+  const dispatch = useDispatch();
   const [editando, setEditando] = useState(false);
   const [input, setInput] = useState(valor || "");
   const [guardando, setGuardando] = useState(false);
@@ -22,8 +24,7 @@ const CampoEditable = ({ label, valor, campo, userId, onGuardado }) => {
     setGuardando(true);
     setError("");
     try {
-      const actualizado = await actualizarUsuario(userId, { [campo]: input.trim() });
-      if (actualizado?.error) { setError("Error al guardar."); return; }
+      const actualizado = await dispatch(actualizarUsuario({ userId, datos: { [campo]: input.trim() } })).unwrap();
       onGuardado(actualizado);
       setEditando(false);
     } catch {

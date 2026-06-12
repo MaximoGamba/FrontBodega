@@ -1,5 +1,7 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../redux/slices/authSlice";
+import { limpiarCarritoAlLogout } from "../redux/slices/carritoSlice";
 
 const tokenExpirado = () => {
   try {
@@ -13,13 +15,15 @@ const tokenExpirado = () => {
 };
 
 const AdminRoute = ({ children }) => {
-  const { usuario, logout } = useAuth();
+  const dispatch = useDispatch();
+  const usuario = useSelector((state) => state.auth.usuario);
 
   if (!usuario) return <Navigate to="/login" replace />;
   if (usuario.rol !== "admin") return <Navigate to="/" replace />;
 
   if (tokenExpirado()) {
-    logout();
+    dispatch(limpiarCarritoAlLogout());
+    dispatch(logout());
     return <Navigate to="/login" replace />;
   }
 

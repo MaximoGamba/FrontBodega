@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useDispatch } from "react-redux";
+import { loginThunk } from "../redux/slices/authSlice";
 import LoginForm from "../components/auth/LoginForm";
 
 const Login = () => {
-  const { login } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || "/";
@@ -16,13 +17,15 @@ const Login = () => {
     e.preventDefault();
     if (!form.username || !form.password) { setError("Completá todos los campos."); return; }
     setCargando(true);
-    const sesion = await login(form.username, form.password);
+    setError("");
+    const result = await dispatch(loginThunk({ username: form.username, password: form.password }));
     setCargando(false);
-    if (sesion) {
+    if (loginThunk.fulfilled.match(result)) {
+      const sesion = result.payload;
       if (sesion.rol === "admin") navigate("/admin");
       else navigate(from);
     } else {
-      setError("Usuario o contraseña incorrectos.");
+      setError(result.error?.message || "Usuario o contraseña incorrectos.");
     }
   };
 

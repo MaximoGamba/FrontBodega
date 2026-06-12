@@ -1,37 +1,32 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { fetchUsuario, fetchPedidosUsuario } from "../services/api";
+import { useSelector, useDispatch } from "react-redux";
+import { logout } from "../redux/slices/authSlice";
+import { limpiarCarritoAlLogout } from "../redux/slices/carritoSlice";
+import { fetchUsuario } from "../redux/slices/usuariosSlice";
 import DatosPersonales from "../components/profile/DatosPersonales";
 import HistorialPedidos from "../components/user/HistorialPedidos";
 
 const Perfil = () => {
-  const { usuario, logout } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [perfil, setPerfil] = useState(null);
-  const [pedidos, setPedidos] = useState([]);
-  const [cargando, setCargando] = useState(true);
+  const usuario = useSelector((state) => state.auth.usuario);
+  const { perfil, loading: cargando } = useSelector((state) => state.usuarios);
   const esAdmin = usuario?.rol === "admin";
 
   useEffect(() => {
     if (!usuario) { navigate("/login"); return; }
-    if (!usuario.id) { logout(); navigate("/login"); return; }
-
-    const peticiones = [fetchUsuario(usuario.id)];
-    if (!esAdmin) peticiones.push(fetchPedidosUsuario(usuario.id));
-
-    Promise.all(peticiones)
-      .then(([datos, historial]) => {
-        setPerfil(datos && !datos.error ? datos : null);
-        if (!esAdmin) setPedidos(Array.isArray(historial) ? [...historial].reverse() : []);
-        setCargando(false);
-      })
-      .catch(() => { setPerfil(null); setCargando(false); });
-  }, [usuario]);
+    if (!usuario.id) { dispatch(limpiarCarritoAlLogout()); dispatch(logout()); navigate("/login"); return; }
+    dispatch(fetchUsuario(usuario.id));
+  }, [dispatch, usuario?.id]);
 
   if (!usuario) return null;
 
-  const handleLogout = () => { logout(); navigate("/"); };
+  const handleLogout = () => {
+    dispatch(limpiarCarritoAlLogout());
+    dispatch(logout());
+    navigate("/");
+  };
 
   return (
     <div style={{ margin: "60px 160px" }}>
@@ -47,7 +42,7 @@ const Perfil = () => {
           perfil={perfil}
           cargando={cargando}
           userId={usuario.id}
-          onGuardado={(cambios) => setPerfil((prev) => ({ ...prev, ...cambios }))}
+          onGuardado={() => {}}
           onLogout={handleLogout}
         />
 
@@ -56,7 +51,7 @@ const Perfil = () => {
             <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "24px", marginBottom: "20px" }}>
               Historial de pedidos
             </h2>
-            <HistorialPedidos pedidos={pedidos} cargando={cargando} />
+            <HistorialPedidos />
           </div>
         )}
       </div>

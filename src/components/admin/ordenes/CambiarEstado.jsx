@@ -1,18 +1,23 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { actualizarEstadoPedido } from "../../../services/api";
+import { useDispatch } from "react-redux";
+import { actualizarEstadoPedido } from "../../../redux/slices/pedidosSlice";
 import { inputStyle, labelStyle, ORDEN_ESTADO_LABEL } from "../adminConstants";
 
-const CambiarEstado = ({ pedidoId, estadoActual, onEstadoActualizado }) => {
+const CambiarEstado = ({ pedidoId, estadoActual }) => {
+  const dispatch = useDispatch();
   const [nuevoEstado, setNuevoEstado] = useState(estadoActual);
   const [guardando, setGuardando] = useState(false);
+
+  useEffect(() => {
+    setNuevoEstado(estadoActual);
+  }, [estadoActual]);
 
   const guardarEstado = async () => {
     if (nuevoEstado === estadoActual) return;
     setGuardando(true);
     try {
-      const actualizado = await actualizarEstadoPedido(pedidoId, nuevoEstado);
-      onEstadoActualizado(actualizado);
+      await dispatch(actualizarEstadoPedido({ id: pedidoId, status: nuevoEstado })).unwrap();
     } catch {
       toast.error("Error al actualizar el estado.");
     } finally {
