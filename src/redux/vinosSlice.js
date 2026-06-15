@@ -4,6 +4,7 @@ import {
   crearVino, actualizarVino, desactivarVinoAPI, reactivarVinoAPI,
 } from "../services/vinosService";
 import { ordenarProductos } from "../utils/productosSort";
+import { calcularPrecioFinal } from "../utils/formatters";
 
 // ─── Adapters ────────────────────────────────────────────────────────────────
 const vinosPublicAdapter = createEntityAdapter();
@@ -41,9 +42,7 @@ export const selectVinosFiltrados = createSelector(
       if (filtros.crianzaId.length     && !filtros.crianzaId.includes(p.crianzaId))         return false;
       if (filtros.elaboracionId.length && !filtros.elaboracionId.includes(p.elaboracionId)) return false;
       if (filtros.medidaId.length      && !filtros.medidaId.includes(p.medidaId))           return false;
-      const precioFinal = p.discountPercent > 0
-        ? p.price * (1 - p.discountPercent / 100)
-        : p.price;
+      const precioFinal = calcularPrecioFinal(p.price, p.discountPercent);
       if (precioFinal < filtros.precioMin || precioFinal > filtros.precioMax) return false;
       return true;
     });
@@ -145,19 +144,29 @@ const vinosSlice = createSlice({
 
       .addCase(postVino.fulfilled, (state, action) => {
         vinosAdminAdapter.addOne(state.admin, action.payload);
+        if (action.payload.active !== false) {
+          vinosPublicAdapter.addOne(state.public, action.payload);
+        }
       })
 
       .addCase(putVino.fulfilled, (state, action) => {
         vinosAdminAdapter.upsertOne(state.admin, action.payload);
-        vinosPublicAdapter.upsertOne(state.public, action.payload);
+        if (action.payload.active !== false) {
+          vinosPublicAdapter.upsertOne(state.public, action.payload);
+        } else {
+          vinosPublicAdapter.removeOne(state.public, action.payload.id);
+        }
       })
 
       .addCase(desactivarVino.fulfilled, (state, action) => {
         vinosAdminAdapter.updateOne(state.admin, { id: action.payload, changes: { active: false } });
+        vinosPublicAdapter.removeOne(state.public, action.payload);
       })
 
       .addCase(reactivarVino.fulfilled, (state, action) => {
         vinosAdminAdapter.updateOne(state.admin, { id: action.payload, changes: { active: true } });
+        const vino = state.admin.entities[action.payload];
+        if (vino) vinosPublicAdapter.upsertOne(state.public, { ...vino, active: true });
       });
   },
 });

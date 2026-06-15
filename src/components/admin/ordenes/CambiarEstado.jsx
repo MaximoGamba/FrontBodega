@@ -6,7 +6,7 @@ import { inputStyle, labelStyle } from "../../../styles/adminStyles";
 import { ORDEN_ESTADO_LABEL } from "../../../utils/pedidoUtils";
 import Boton from "../../shared/Boton";
 
-const CambiarEstado = ({ pedidoId, estadoActual, onEstadoActualizado }) => {
+const CambiarEstado = ({ pedidoId, estadoActual }) => {
   const dispatch = useDispatch();
   const [guardando, setGuardando] = useState(false);
   const [nuevoEstado, setNuevoEstado] = useState(estadoActual);
@@ -16,9 +16,7 @@ const CambiarEstado = ({ pedidoId, estadoActual, onEstadoActualizado }) => {
     setGuardando(true);
     const result = await dispatch(putEstadoPedido({ id: pedidoId, status: nuevoEstado }));
     setGuardando(false);
-    if (putEstadoPedido.fulfilled.match(result)) {
-      onEstadoActualizado(result.payload);
-    } else {
+    if (!putEstadoPedido.fulfilled.match(result)) {
       toast.error("Error al actualizar el estado.");
     }
   };

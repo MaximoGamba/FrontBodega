@@ -17,8 +17,7 @@ const ProductDetail = () => {
   const usuario  = useSelector((state) => state.auth.usuario);
   const esAdmin  = usuario?.rol === ROL_ADMIN;
 
-  const [cantidad, setCantidad]       = useState(1);
-  const [imagenActual, setImagenActual] = useState(null);
+  const [cantidad, setCantidad] = useState(1);
 
   useEffect(() => { setCantidad(1); }, [id]);
 
@@ -33,11 +32,6 @@ const ProductDetail = () => {
       .filter((p) => p.id !== producto.id && (p.colorId === producto.colorId || p.cepaId === producto.cepaId))
       .slice(0, 3);
   }, [producto, vinos]);
-
-  const todasImagenes = useMemo(() => {
-    if (!producto) return [];
-    return [producto.imagen].filter(Boolean);
-  }, [producto]);
 
   return (
     <EstadoCarga cargando={cargando} error={null}>
@@ -60,9 +54,7 @@ const ProductDetail = () => {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "64px", alignItems: "start" }}>
             <GaleriaProducto
-              imagenMostrada={imagenActual || producto.imagen}
-              todasImagenes={todasImagenes}
-              onSeleccionar={setImagenActual}
+              imagenMostrada={producto.imagen}
               discountPercent={producto.discountPercent}
               stock={producto.stock}
               nombre={producto.name}

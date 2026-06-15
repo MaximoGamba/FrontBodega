@@ -1,14 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { ROL_ADMIN } from "@/utils/roles";
-
-const LINKS = [
-  { label: "Inicio",          to: "/" },
-  { label: "Catálogo",        to: "/productos" },
-  { label: "Ofertas",         to: "/ofertas" },
-  { label: "Nuestra Historia",to: "/historia" },
-  { label: "Contacto",        to: "/contacto" },
-];
+import { NAV_LINKS } from "@/data/links";
 
 const NavLinks = () => {
   const { pathname } = useLocation();
@@ -23,7 +16,7 @@ const NavLinks = () => {
 
   return (
     <ul style={{ display: "flex", gap: "24px", listStyle: "none", padding: 0, margin: 0 }}>
-      {LINKS.map(({ label, to }) => (
+      {NAV_LINKS.map(({ label, to }) => (
         <li key={to}>
           <Link to={to} style={linkStyle(to)}>{label}</Link>
         </li>

@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
+import { HISTORIA_FUNDACION } from "../../data/historia";
 
 const HistoriaBanner = () => (
   <section style={{ background: "var(--neutral)", padding: "80px 40px", textAlign: "center" }}>
     <p style={{ fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", color: "var(--secondary)", marginBottom: "20px", opacity: 0.7 }}>
-      Desde 1995
+      Desde {HISTORIA_FUNDACION}
     </p>
     <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "40px", fontWeight: "400", color: "var(--secondary)", maxWidth: "600px", margin: "0 auto 24px", lineHeight: "1.3" }}>
       Tradición y pasión en cada botella

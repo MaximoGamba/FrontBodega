@@ -5,7 +5,7 @@ import DetalleEnvio from "./DetalleEnvio";
 import DetallePago from "./DetallePago";
 import CambiarEstado from "./CambiarEstado";
 
-const FilaOrden = ({ pedido, onEstadoActualizado }) => {
+const FilaOrden = ({ pedido }) => {
   const [expandida, setExpandida] = useState(false);
 
   const colores = ORDEN_ESTADO_COLOR[pedido.status] || { bg: "#f5f5f5", text: "var(--gray)" };
@@ -48,7 +48,6 @@ const FilaOrden = ({ pedido, onEstadoActualizado }) => {
               <CambiarEstado
                 pedidoId={pedido.id}
                 estadoActual={pedido.status}
-                onEstadoActualizado={onEstadoActualizado}
               />
             </div>
           </td>

@@ -1,5 +1,4 @@
 import axios from "axios";
-import { store } from "./store";
 import { logout } from "./authSlice";
 
 export const tokenExpirado = (token) => {
@@ -12,13 +11,16 @@ export const tokenExpirado = (token) => {
   }
 };
 
+let _store = null;
+export const injectStore = (store) => { _store = store; };
+
 const api = axios.create();
 
 api.interceptors.request.use((config) => {
-  const { token } = store.getState().auth;
+  const { token } = _store.getState().auth;
   if (token) {
     if (tokenExpirado(token)) {
-      store.dispatch(logout());
+      _store.dispatch(logout());
       return Promise.reject(new Error("Sesión expirada"));
     }
     config.headers.Authorization = `Bearer ${token}`;
@@ -30,7 +32,7 @@ api.interceptors.response.use(
   (response) => response.data,
   (error) => {
     if (error.response?.status === 401) {
-      store.dispatch(logout());
+      _store.dispatch(logout());
     }
     const msg =
       error.response?.data?.error ||

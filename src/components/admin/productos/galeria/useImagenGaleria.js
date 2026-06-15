@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { uploadImagenThunk } from "../../../../redux/galeriaSlice";
+import { uploadImagenThunk } from "@/redux/galeriaSlice";
 
 const LIMITE_GALERIA = 100;
 

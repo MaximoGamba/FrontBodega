@@ -4,7 +4,7 @@ import { putUsuario } from "@/redux/usuarioSlice";
 import { inputStyle, labelStyle } from "../../styles/profileStyles";
 import Boton from "../shared/Boton";
 
-const CampoEditable = ({ label, valor, campo, userId, onGuardado }) => {
+const CampoEditable = ({ label, valor, campo, userId }) => {
   const dispatch = useDispatch();
   const [editando, setEditando] = useState(false);
   const [input, setInput] = useState(valor || "");
@@ -18,7 +18,6 @@ const CampoEditable = ({ label, valor, campo, userId, onGuardado }) => {
     const result = await dispatch(putUsuario({ userId, datos: { [campo]: input.trim() } }));
     setGuardando(false);
     if (putUsuario.fulfilled.match(result)) {
-      onGuardado(result.payload);
       setEditando(false);
     } else {
       setError("Error al guardar.");

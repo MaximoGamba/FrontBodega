@@ -23,6 +23,7 @@ const Checkout = () => {
   useEffect(() => { return () => { dispatch(resetCheckout()); }; }, [dispatch]);
 
   if (usuario?.rol === ROL_ADMIN) return <Navigate to="/" replace />;
+  if (carrito.length === 0) return <Navigate to="/carrito" replace />;
 
   const subtotal = calcularSubtotal(carrito);
 
