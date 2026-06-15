@@ -1,56 +1,48 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import { fetchColores, fetchCepas, fetchAzucares, fetchCrianzas, fetchElaboraciones, fetchMedidas } from "../../../services/api";
+import { setProductoEditando, cerrarFormProducto } from "@/redux/adminUISlice";
+import { selectVinoAdminById } from "@/redux/vinosSlice";
+import useCatalogos from "../../../hooks/useCatalogos";
 import FormProducto from "./FormProducto";
 import TablaProductos from "./TablaProductos";
 
 const SeccionProductos = () => {
-  const [editando, setEditando] = useState(null);
-  const [mostrarForm, setMostrarForm] = useState(false);
-  const [version, setVersion] = useState(0);
-  const [opciones, setOpciones] = useState(null);
-  const [errorOpciones, setErrorOpciones] = useState(false);
+  const dispatch = useDispatch();
+  const { catalogos, error: errorOpciones } = useCatalogos();
+
+  const productoEditandoId = useSelector((state) => state.adminUI.productoEditandoId);
+  const mostrarForm        = useSelector((state) => state.adminUI.mostrarFormProducto);
+  const editando           = useSelector((state) => selectVinoAdminById(state, productoEditandoId));
 
   useEffect(() => {
-    Promise.all([fetchColores(), fetchCepas(), fetchAzucares(), fetchCrianzas(), fetchElaboraciones(), fetchMedidas()])
-      .then(([colores, cepas, azucares, crianzas, elaboraciones, medidas]) => {
-        setOpciones({ colores, cepas, azucares, crianzas, elaboraciones, medidas });
-      })
-      .catch(() => {
-        setErrorOpciones(true);
-        toast.error("No se pudieron cargar las opciones del formulario.");
-      });
-  }, []);
-
-  const abrirNuevo = () => { setEditando(null); setMostrarForm(true); };
-  const abrirEditar = (p) => { setEditando(p); setMostrarForm(true); };
-  const handleGuardado = () => { setMostrarForm(false); setVersion((v) => v + 1); };
-  const handleCerrar = () => setMostrarForm(false);
+    if (errorOpciones) toast.error("No se pudieron cargar las opciones del formulario.");
+  }, [errorOpciones]);
 
   return (
     <>
       <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "24px" }}>
         <button
-          onClick={abrirNuevo}
-          disabled={!opciones || errorOpciones}
+          onClick={() => dispatch(setProductoEditando(null))}
+          disabled={!catalogos || !!errorOpciones}
           title={errorOpciones ? "No se pudieron cargar las opciones del formulario" : undefined}
-          style={{ background: "var(--primary)", color: "white", border: "none", padding: "10px 24px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: (!opciones || errorOpciones) ? "not-allowed" : "pointer", opacity: (!opciones || errorOpciones) ? 0.5 : 1 }}
+          style={{ background: "var(--primary)", color: "white", border: "none", padding: "10px 24px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: (!catalogos || errorOpciones) ? "not-allowed" : "pointer", opacity: (!catalogos || errorOpciones) ? 0.5 : 1 }}
         >
-          {!opciones && !errorOpciones ? "Cargando..." : "+ Nuevo producto"}
+          {!catalogos && !errorOpciones ? "Cargando..." : "+ Nuevo producto"}
         </button>
       </div>
 
       {mostrarForm && (
         <FormProducto
-          key={editando?.id ?? "nuevo"}
+          key={productoEditandoId ?? "nuevo"}
           producto={editando}
-          opciones={opciones}
-          onGuardado={handleGuardado}
-          onCerrar={handleCerrar}
+          opciones={catalogos}
+          onGuardado={() => dispatch(cerrarFormProducto())}
+          onCerrar={() => dispatch(cerrarFormProducto())}
         />
       )}
 
-      <TablaProductos version={version} onEditar={abrirEditar} />
+      <TablaProductos onEditar={(p) => dispatch(setProductoEditando(p.id))} />
     </>
   );
 };

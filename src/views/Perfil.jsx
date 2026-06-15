@@ -1,37 +1,27 @@
-import { useState, useEffect } from "react";
+﻿import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { fetchUsuario, fetchPedidosUsuario } from "../services/api";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "@/redux/authSlice";
+import usePerfil from "../hooks/usePerfil";
+import { ROL_ADMIN } from "../utils/roles";
 import DatosPersonales from "../components/profile/DatosPersonales";
-import HistorialPedidos from "../components/user/HistorialPedidos";
+import HistorialPedidos from "../components/profile/HistorialPedidos";
 
 const Perfil = () => {
-  const { usuario, logout } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [perfil, setPerfil] = useState(null);
-  const [pedidos, setPedidos] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const esAdmin = usuario?.rol === "admin";
+  const usuario = useSelector((state) => state.auth.usuario);
+  const esAdmin = usuario?.rol === ROL_ADMIN;
+  const { perfil, pedidos, cargando, actualizarPerfil } = usePerfil(usuario?.id, esAdmin);
 
   useEffect(() => {
     if (!usuario) { navigate("/login"); return; }
-    if (!usuario.id) { logout(); navigate("/login"); return; }
-
-    const peticiones = [fetchUsuario(usuario.id)];
-    if (!esAdmin) peticiones.push(fetchPedidosUsuario(usuario.id));
-
-    Promise.all(peticiones)
-      .then(([datos, historial]) => {
-        setPerfil(datos && !datos.error ? datos : null);
-        if (!esAdmin) setPedidos(Array.isArray(historial) ? [...historial].reverse() : []);
-        setCargando(false);
-      })
-      .catch(() => { setPerfil(null); setCargando(false); });
-  }, [usuario]);
+    if (!usuario.id) { dispatch(logout()); navigate("/login"); }
+  }, [usuario, dispatch, navigate]);
 
   if (!usuario) return null;
 
-  const handleLogout = () => { logout(); navigate("/"); };
+  const handleLogout = () => { dispatch(logout()); navigate("/"); };
 
   return (
     <div style={{ margin: "60px 160px" }}>
@@ -47,7 +37,7 @@ const Perfil = () => {
           perfil={perfil}
           cargando={cargando}
           userId={usuario.id}
-          onGuardado={(cambios) => setPerfil((prev) => ({ ...prev, ...cambios }))}
+          onGuardado={actualizarPerfil}
           onLogout={handleLogout}
         />
 

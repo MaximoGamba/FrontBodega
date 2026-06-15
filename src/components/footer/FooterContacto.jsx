@@ -1,4 +1,4 @@
-const DATOS = ["+54 9 1123456789", "bodega.ventas@gmail.com"];
+import { INFO_CONTACTO } from "../../data/contacto";
 
 const FooterContacto = () => (
   <div>
@@ -6,8 +6,8 @@ const FooterContacto = () => (
       Contactános
     </p>
     <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-      {DATOS.map((dato) => (
-        <p key={dato} style={{ fontSize: "14px", color: "var(--gray)" }}>{dato}</p>
+      {INFO_CONTACTO.map(({ label, valor }) => (
+        <p key={label} style={{ fontSize: "14px", color: "var(--gray)" }}>{valor}</p>
       ))}
     </div>
   </div>

@@ -1,15 +1,16 @@
 import { Link } from "react-router-dom";
 import { LuUser } from "react-icons/lu";
-import { useCart } from "../../context/CartContext";
-import { useAuth } from "../../context/AuthContext";
+import { useSelector } from "react-redux";
+import { ROL_ADMIN } from "@/utils/roles";
 import CarritoIcono from "./CarritoIcono";
 import BotonLogout from "./BotonLogout";
 
 const NavAcciones = () => {
-  const { carrito } = useCart();
-  const { usuario } = useAuth();
-  const esAdmin = usuario?.rol === "admin";
-  const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
+  const usuario = useSelector((state) => state.auth.usuario);
+  const esAdmin = usuario?.rol === ROL_ADMIN;
+  const totalItems = useSelector((state) =>
+    state.carrito.items.reduce((acc, item) => acc + item.cantidad, 0)
+  );
 
   return (
     <>

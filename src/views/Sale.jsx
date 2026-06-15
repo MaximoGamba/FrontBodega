@@ -1,29 +1,19 @@
-import { useState, useEffect } from "react";
-import { fetchVinos } from "../services/api";
+﻿import { useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setOrdenSale } from "@/redux/catalogoUISlice";
+import useVinos from "../hooks/useVinos";
+import { ordenarProductos } from "../utils/productosSort";
+import { estaActivo } from "../services/vinosService";
 import ProductCard from "../components/product/ProductCard";
+import EstadoCarga from "../components/shared/EstadoCarga";
 
 const Sale = () => {
-  const [enOferta, setEnOferta] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [orden, setOrden] = useState("");
+  const dispatch = useDispatch();
+  const { vinos, cargando, error } = useVinos();
+  const orden = useSelector((state) => state.catalogoUI.ordenSale);
 
-  const ordenar = (lista) => {
-    const c = [...lista];
-    if (orden === "precio-asc") c.sort((a, b) => a.price - b.price);
-    else if (orden === "precio-desc") c.sort((a, b) => b.price - a.price);
-    else if (orden === "nuevo") c.sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
-    else if (orden === "antiguo") c.sort((a, b) => (a.year ?? 0) - (b.year ?? 0));
-    return c.sort((a, b) => (a.stock === 0 ? 1 : 0) - (b.stock === 0 ? 1 : 0));
-  };
-
-  useEffect(() => {
-    fetchVinos()
-      .then((data) => {
-        setEnOferta(data.filter((p) => p.discountPercent > 0));
-        setCargando(false);
-      })
-      .catch(() => setCargando(false));
-  }, []);
+  const enOferta = useMemo(() => vinos.filter((p) => p.discountPercent > 0 && estaActivo(p)), [vinos]);
+  const ordenados = useMemo(() => ordenarProductos(enOferta, orden), [enOferta, orden]);
 
   return (
     <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 40px" }}>
@@ -36,7 +26,7 @@ const Sale = () => {
         </div>
         <select
           value={orden}
-          onChange={(e) => setOrden(e.target.value)}
+          onChange={(e) => dispatch(setOrdenSale(e.target.value))}
           style={{ border: "1px solid var(--border)", padding: "6px 10px", fontSize: "12px", fontFamily: "var(--font-sans)", background: "white", cursor: "pointer" }}
         >
           <option value="">Ordenar por</option>
@@ -47,19 +37,19 @@ const Sale = () => {
         </select>
       </div>
 
-      {!cargando && enOferta.length === 0 && (
-        <p style={{ textAlign: "center", color: "var(--gray)", marginTop: "60px", fontSize: "16px" }}>
-          No hay productos en oferta por el momento.
-        </p>
-      )}
-
-      {!cargando && enOferta.length > 0 && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px" }}>
-          {ordenar(enOferta).map((producto) => (
-            <ProductCard key={producto.id} producto={producto} />
-          ))}
-        </div>
-      )}
+      <EstadoCarga cargando={cargando} error={error}>
+        {ordenados.length === 0 ? (
+          <p style={{ textAlign: "center", color: "var(--gray)", marginTop: "60px", fontSize: "16px" }}>
+            No hay productos en oferta por el momento.
+          </p>
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "32px" }}>
+            {ordenados.map((producto) => (
+              <ProductCard key={producto.id} producto={producto} />
+            ))}
+          </div>
+        )}
+      </EstadoCarga>
     </div>
   );
 };

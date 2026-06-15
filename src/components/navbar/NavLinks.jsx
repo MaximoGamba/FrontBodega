@@ -1,18 +1,12 @@
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-
-const LINKS = [
-  { label: "Inicio",          to: "/" },
-  { label: "Catálogo",        to: "/productos" },
-  { label: "Ofertas",         to: "/ofertas" },
-  { label: "Nuestra Historia",to: "/historia" },
-  { label: "Contacto",        to: "/contacto" },
-];
+import { useSelector } from "react-redux";
+import { ROL_ADMIN } from "@/utils/roles";
+import { NAV_LINKS } from "@/data/links";
 
 const NavLinks = () => {
   const { pathname } = useLocation();
-  const { usuario } = useAuth();
-  const esAdmin = usuario?.rol === "admin";
+  const usuario = useSelector((state) => state.auth.usuario);
+  const esAdmin = usuario?.rol === ROL_ADMIN;
 
   const linkStyle = (to) => ({
     fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--neutral)",
@@ -21,15 +15,15 @@ const NavLinks = () => {
   });
 
   return (
-    <ul className="navbar-nav gap-4">
-      {LINKS.map(({ label, to }) => (
-        <li key={to} className="nav-item">
-          <Link to={to} className="nav-link" style={linkStyle(to)}>{label}</Link>
+    <ul style={{ display: "flex", gap: "24px", listStyle: "none", padding: 0, margin: 0 }}>
+      {NAV_LINKS.map(({ label, to }) => (
+        <li key={to}>
+          <Link to={to} style={linkStyle(to)}>{label}</Link>
         </li>
       ))}
       {esAdmin && (
-        <li className="nav-item">
-          <Link to="/admin" className="nav-link" style={{ ...linkStyle("/admin"), color: "var(--primary)", fontWeight: "600" }}>
+        <li>
+          <Link to="/admin" style={{ ...linkStyle("/admin"), color: "var(--primary)", fontWeight: "600" }}>
             Panel Admin
           </Link>
         </li>

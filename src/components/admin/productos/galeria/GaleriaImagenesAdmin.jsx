@@ -1,12 +1,12 @@
-import useImagenGaleria from "../../../../hooks/useImagenGaleria";
-import { labelStyle, errorStyle } from "../../adminConstants";
+﻿import useImagenGaleria from "./useImagenGaleria";
+import { labelStyle, errorStyle } from "../../../../styles/adminStyles";
 import MiniaturaImagen from "./MiniaturaImagen";
 
-const GaleriaImagenesAdmin = ({ imagenInicial, productId, error, onChange }) => {
+const GaleriaImagenesAdmin = ({ imagenInicial, error, onChange }) => {
   const {
     mostrarGaleria, subiendoImagen, imagenPrincipal, imagenesSeleccionadas,
     galeria, toggleGaleria, handleImagen, onSetPrincipal, onEliminarImagen, onSelectFromGallery,
-  } = useImagenGaleria({ imagenInicial, productId, onChange });
+  } = useImagenGaleria({ imagenInicial, onChange });
 
   return (
     <div style={{ marginBottom: "16px" }}>

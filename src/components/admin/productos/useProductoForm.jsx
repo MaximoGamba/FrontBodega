@@ -1,7 +1,8 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { crearVino, actualizarVino, mapVino } from "../services/api";
-import { validarProducto } from "../utils/validators";
+import { postVino, putVino } from "@/redux/vinosSlice";
+import { validarProducto } from "@/utils/validators";
 
 const CAMPOS_VACIOS = {
   name: "", winery: "", year: "", price: "", stock: "",
@@ -10,13 +11,13 @@ const CAMPOS_VACIOS = {
 };
 
 const useProductoForm = ({ producto, opciones, onGuardado, onCerrar }) => {
+  const dispatch = useDispatch();
   const esEdicion = Boolean(producto);
 
   const [form, setForm] = useState(null);
   const [errores, setErrores] = useState({});
   const [guardando, setGuardando] = useState(false);
   const [imageUrl, setImageUrl] = useState(producto?.imageUrl || producto?.imagen || "");
-  const [imagenesSeleccionadas, setImagenesSeleccionadas] = useState([]);
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ const useProductoForm = ({ producto, opciones, onGuardado, onCerrar }) => {
         medidaId: medidas[0]?.id ?? "",
       });
     }
-  }, [opciones]);
+  }, [opciones, esEdicion, producto]);
 
   const handleChange = (campo, valor) => {
     setIsDirty(true);
@@ -43,10 +44,9 @@ const useProductoForm = ({ producto, opciones, onGuardado, onCerrar }) => {
     setErrores((e) => ({ ...e, [campo]: undefined }));
   };
 
-  const handleGaleriaChange = (url, imgs) => {
+  const handleGaleriaChange = (url) => {
     setIsDirty(true);
     setImageUrl(url);
-    setImagenesSeleccionadas(imgs);
     if (url) setErrores((e) => ({ ...e, imagen: undefined }));
   };
 
@@ -100,16 +100,11 @@ const useProductoForm = ({ producto, opciones, onGuardado, onCerrar }) => {
     setGuardando(true);
     try {
       if (esEdicion) {
-        await actualizarVino(producto.id, datos);
-        const todasImagenes = [...new Set([imageUrl, ...imagenesSeleccionadas])].filter(Boolean);
-        if (todasImagenes.length > 0)
-          localStorage.setItem(`bodega_imgs_${producto.id}`, JSON.stringify(todasImagenes));
+        const result = await dispatch(putVino({ id: producto.id, datos }));
+        if (putVino.rejected.match(result)) throw new Error(result.payload);
       } else {
-        const nuevo = await crearVino(datos);
-        const idProducto = mapVino(nuevo).id;
-        const todasImagenes = [...new Set([imageUrl, ...imagenesSeleccionadas])].filter(Boolean);
-        if (idProducto && todasImagenes.length > 0)
-          localStorage.setItem(`bodega_imgs_${idProducto}`, JSON.stringify(todasImagenes));
+        const result = await dispatch(postVino(datos));
+        if (postVino.rejected.match(result)) throw new Error(result.payload);
       }
       onGuardado();
     } catch {

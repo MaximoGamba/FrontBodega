@@ -1,4 +1,4 @@
-import CampoEditable from "./CampoEditable";
+﻿import CampoEditable from "./CampoEditable";
 import CambiarPassword from "./CambiarPassword";
 import { labelStyle } from "../../styles/profileStyles";
 
@@ -28,14 +28,14 @@ const DatosPersonales = ({ perfil, cargando, userId, onGuardado, onLogout }) => 
             valor={perfil.firstName}
             campo="firstName"
             userId={userId}
-            onGuardado={(actualizado) => onGuardado({ firstName: actualizado.firstName })}
+            onGuardado={() => {}}
           />
           <CampoEditable
             label="Apellido"
             valor={perfil.lastName}
             campo="lastName"
             userId={userId}
-            onGuardado={(actualizado) => onGuardado({ lastName: actualizado.lastName })}
+            onGuardado={() => {}}
           />
 
           <CambiarPassword userId={userId} />

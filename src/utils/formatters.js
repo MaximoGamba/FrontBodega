@@ -18,3 +18,6 @@ export const formatearVencimiento = (val, prev) => {
 
 export const calcularPrecioFinal = (price, discountPercent) =>
   discountPercent > 0 ? price * (1 - discountPercent / 100) : price;
+
+export const calcularSubtotal = (carrito) =>
+  carrito.reduce((acc, item) => acc + calcularPrecioFinal(item.price, item.discountPercent) * item.cantidad, 0);

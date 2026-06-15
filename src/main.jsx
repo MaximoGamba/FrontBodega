@@ -1,20 +1,21 @@
 import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "bootstrap/dist/css/bootstrap.min.css";
 import "./index.css";
 import App from "./App.jsx";
-import { CartProvider } from "./context/CartContext.jsx";
-import { AuthProvider } from "./context/AuthContext.jsx";
+import { store, persistor } from "./redux/store";
 
 createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
-    <AuthProvider>
-      <CartProvider>
+  <Provider store={store}>
+    {/* PersistGate retarda el render hasta que redux-persist rehidrate auth y carrito */}
+    <PersistGate loading={null} persistor={persistor}>
+      <BrowserRouter>
         <App />
         <ToastContainer position="top-center" autoClose={4500} hideProgressBar={false} closeOnClick pauseOnHover style={{ fontSize: "1.2rem", width: "460px" }} />
-      </CartProvider>
-    </AuthProvider>
-  </BrowserRouter>
+      </BrowserRouter>
+    </PersistGate>
+  </Provider>
 );

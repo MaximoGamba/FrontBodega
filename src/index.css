@@ -4,13 +4,9 @@
   --primary: #722F37;
   --primary-dark: #5a2329;
   --secondary: #F2E8CF;
-  --tertiary: #04502A;
   --neutral: #1A1A1A;
   --gray: #6b6b6b;
   --border: #e0d9ce;
-  --white: #ffffff;
-  --danger: #dc3545;
-  --success: #198754;
 
   --font-serif: 'Noto Serif', Georgia, serif;
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -45,6 +41,10 @@ h1, h2, h3 {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 @keyframes parpadeo-stock {

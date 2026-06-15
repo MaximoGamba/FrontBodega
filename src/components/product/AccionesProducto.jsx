@@ -24,9 +24,9 @@ const AccionesProducto = ({ producto, cantidad, onCantidad, onAgregar, esAdmin }
         Cantidad
       </p>
       <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
-        <button onClick={() => onCantidad((c) => Math.max(1, c - 1))} style={btnCantidad}>−</button>
+        <button onClick={() => onCantidad(Math.max(1, cantidad - 1))} style={btnCantidad}>−</button>
         <span style={{ fontSize: "16px", minWidth: "24px", textAlign: "center" }}>{cantidad}</span>
-        <button onClick={() => onCantidad((c) => Math.min(producto.stock, c + 1))} style={btnCantidad}>+</button>
+        <button onClick={() => onCantidad(Math.min(producto.stock, cantidad + 1))} style={btnCantidad}>+</button>
       </div>
       <button
         onClick={onAgregar}

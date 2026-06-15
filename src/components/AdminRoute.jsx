@@ -1,27 +1,21 @@
+import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-
-const tokenExpirado = () => {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) return true;
-    const payload = JSON.parse(atob(token.split(".")[1]));
-    return payload.exp * 1000 < Date.now();
-  } catch {
-    return true;
-  }
-};
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "@/redux/authSlice";
+import { tokenExpirado } from "@/redux/api";
+import { ROL_ADMIN } from "@/utils/roles";
 
 const AdminRoute = ({ children }) => {
-  const { usuario, logout } = useAuth();
+  const dispatch = useDispatch();
+  const { usuario, token } = useSelector((state) => state.auth);
+  const expirado = tokenExpirado(token);
 
-  if (!usuario) return <Navigate to="/login" replace />;
-  if (usuario.rol !== "admin") return <Navigate to="/" replace />;
+  useEffect(() => {
+    if (expirado) dispatch(logout());
+  }, [expirado, dispatch]);
 
-  if (tokenExpirado()) {
-    logout();
-    return <Navigate to="/login" replace />;
-  }
+  if (!usuario || expirado) return <Navigate to="/login" replace />;
+  if (usuario.rol !== ROL_ADMIN) return <Navigate to="/" replace />;
 
   return children;
 };

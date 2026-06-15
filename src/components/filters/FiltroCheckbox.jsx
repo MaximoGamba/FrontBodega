@@ -15,7 +15,7 @@ const FiltroCheckbox = ({ label, campo, opciones, filtros, onCheckbox }) => {
             onChange={(e) => onCheckbox(campo, e.target.value)}
             style={{ accentColor: "var(--primary)", width: "16px", height: "16px" }}
           />
-          {op.nombre}
+          {op.name}
         </label>
       ))}
     </div>

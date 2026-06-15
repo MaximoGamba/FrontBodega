@@ -1,4 +1,4 @@
-import ListaResumenItems from "../shared/ListaResumenItems";
+﻿import ListaResumenItems from "../shared/ListaResumenItems";
 
 const ResumenPedido = ({ carrito, subtotal }) => (
   <div style={{ border: "1px solid var(--border)", padding: "24px" }}>

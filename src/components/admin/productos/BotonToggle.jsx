@@ -1,8 +1,8 @@
 import { toast } from "react-toastify";
-import { desactivarVinoAPI, reactivarVinoAPI } from "../../../services/api";
+import { estaActivo } from "../../../services/vinosService";
 
 const BotonToggle = ({ producto, onActualizado }) => {
-  const activo = producto.active !== false;
+  const activo = estaActivo(producto);
   const accion = activo ? "desactivar" : "reactivar";
   const toastId = `toggle-${producto.id}`;
 
@@ -14,16 +14,7 @@ const BotonToggle = ({ producto, onActualizado }) => {
           <p style={{ margin: "0 0 10px", fontSize: "14px" }}>¿Desea {accion} este producto?</p>
           <div style={{ display: "flex", gap: "8px" }}>
             <button
-              onClick={async () => {
-                closeToast();
-                try {
-                  if (activo) await desactivarVinoAPI(producto.id);
-                  else await reactivarVinoAPI(producto.id);
-                  onActualizado(producto.id, !activo);
-                } catch {
-                  toast.error(`Error al ${accion} el producto.`);
-                }
-              }}
+              onClick={() => { closeToast(); onActualizado(producto.id, !activo); }}
               style={{ background: "var(--primary)", color: "white", border: "none", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}
             >
               Confirmar

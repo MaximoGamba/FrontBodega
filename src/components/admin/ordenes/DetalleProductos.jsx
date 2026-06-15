@@ -1,4 +1,4 @@
-import { labelStyle } from "../adminConstants";
+﻿import { labelStyle } from "../../../styles/adminStyles";
 
 const DetalleProductos = ({ items, total }) => (
   <div>

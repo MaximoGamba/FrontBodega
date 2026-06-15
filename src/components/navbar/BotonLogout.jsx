@@ -1,9 +1,10 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { toast } from "react-toastify";
-import { useAuth } from "../../context/AuthContext";
+import { logout } from "@/redux/authSlice";
 
 const BotonLogout = () => {
-  const { logout } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const confirmarLogout = () => {
@@ -13,7 +14,12 @@ const BotonLogout = () => {
           <p style={{ margin: "0 0 10px", fontSize: "14px" }}>¿Seguro que querés cerrar sesión?</p>
           <div style={{ display: "flex", gap: "8px" }}>
             <button
-              onClick={() => { closeToast(); logout(); navigate("/"); toast.success("Sesión cerrada correctamente", { position: "top-center" }); }}
+              onClick={() => {
+                closeToast();
+                dispatch(logout());
+                navigate("/");
+                toast.success("Sesión cerrada correctamente", { position: "top-center" });
+              }}
               style={{ background: "var(--primary)", color: "white", border: "none", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}
             >
               Cerrar sesión

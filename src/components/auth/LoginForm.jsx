@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { inputStyle, labelStyle } from "../../styles/authStyles";
 
 const LoginForm = ({ form, setForm, error, cargando, onSubmit }) => (

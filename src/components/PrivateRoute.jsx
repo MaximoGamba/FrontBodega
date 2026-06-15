@@ -1,9 +1,11 @@
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useSelector } from "react-redux";
+import { tokenExpirado } from "@/redux/api";
 
 const PrivateRoute = ({ children }) => {
-  const { usuario } = useAuth();
-  if (!usuario) return <Navigate to="/login" replace />;
+  const usuario = useSelector((state) => state.auth.usuario);
+  const token   = useSelector((state) => state.auth.token);
+  if (!usuario || tokenExpirado(token)) return <Navigate to="/login" replace />;
   return children;
 };
 

@@ -1,4 +1,4 @@
-import { calcularPrecioFinal } from "../../utils/formatters";
+﻿import { calcularPrecioFinal } from "../../utils/formatters";
 
 const ListaResumenItems = ({ items, total }) => (
   <>

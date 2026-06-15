@@ -1,26 +1,18 @@
-import { useState, useEffect } from "react";
-import { fetchPedidosAdmin } from "../../../services/api";
-import { ORDEN_ESTADO_LABEL } from "../adminConstants";
+﻿import { useDispatch, useSelector } from "react-redux";
+import { setFiltroOrdenesAdmin } from "@/redux/adminUISlice";
+import usePedidosAdmin from "../../../hooks/usePedidosAdmin";
+import { ORDEN_ESTADO_LABEL } from "../../../utils/pedidoUtils";
 import FilaOrden from "./FilaOrden";
+import EstadoCarga from "../../shared/EstadoCarga";
 
 const SeccionOrdenes = () => {
-  const [pedidos, setPedidos] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [filtroEstado, setFiltroEstado] = useState("TODOS");
-
-  useEffect(() => {
-    fetchPedidosAdmin()
-      .then((data) => { setPedidos(Array.isArray(data) ? [...data].reverse() : []); setCargando(false); })
-      .catch(() => setCargando(false));
-  }, []);
+  const dispatch = useDispatch();
+  const { pedidos, cargando, error, actualizarEstado } = usePedidosAdmin();
+  const filtroEstado = useSelector((state) => state.adminUI.filtroOrdenesAdmin);
 
   const pedidosFiltrados = filtroEstado === "TODOS"
     ? pedidos
     : pedidos.filter((p) => p.status === filtroEstado);
-
-  const handleEstadoActualizado = (actualizado) => {
-    setPedidos((prev) => prev.map((p) => p.id === actualizado.id ? { ...p, status: actualizado.status } : p));
-  };
 
   return (
     <>
@@ -28,7 +20,7 @@ const SeccionOrdenes = () => {
         {["TODOS", ...Object.keys(ORDEN_ESTADO_LABEL)].map((est) => (
           <button
             key={est}
-            onClick={() => setFiltroEstado(est)}
+            onClick={() => dispatch(setFiltroOrdenesAdmin(est))}
             style={{
               background: filtroEstado === est ? "var(--primary)" : "white",
               color: filtroEstado === est ? "white" : "var(--neutral)",
@@ -47,26 +39,26 @@ const SeccionOrdenes = () => {
         ))}
       </div>
 
-      {cargando ? (
-        <p style={{ color: "var(--gray)", textAlign: "center", padding: "40px" }}>Cargando pedidos...</p>
-      ) : pedidosFiltrados.length === 0 ? (
-        <p style={{ color: "var(--gray)", fontSize: "14px" }}>No hay pedidos en este estado.</p>
-      ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
-          <thead>
-            <tr style={{ borderBottom: "2px solid var(--border)", textAlign: "left" }}>
-              {["#", "Usuario", "Fecha", "Estado", "Total", ""].map((h) => (
-                <th key={h} style={{ padding: "10px 12px", fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase", color: "var(--gray)", fontWeight: "600" }}>{h}</th>
+      <EstadoCarga cargando={cargando} error={error}>
+        {pedidosFiltrados.length === 0 ? (
+          <p style={{ color: "var(--gray)", fontSize: "14px" }}>No hay pedidos en este estado.</p>
+        ) : (
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+            <thead>
+              <tr style={{ borderBottom: "2px solid var(--border)", textAlign: "left" }}>
+                {["#", "Usuario", "Fecha", "Estado", "Total", ""].map((h) => (
+                  <th key={h} style={{ padding: "10px 12px", fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase", color: "var(--gray)", fontWeight: "600" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {pedidosFiltrados.map((pedido) => (
+                <FilaOrden key={pedido.id} pedido={pedido} onEstadoActualizado={actualizarEstado} />
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {pedidosFiltrados.map((pedido) => (
-              <FilaOrden key={pedido.id} pedido={pedido} onEstadoActualizado={handleEstadoActualizado} />
-            ))}
-          </tbody>
-        </table>
-      )}
+            </tbody>
+          </table>
+        )}
+      </EstadoCarga>
     </>
   );
 };

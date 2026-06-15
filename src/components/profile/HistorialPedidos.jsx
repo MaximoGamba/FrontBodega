@@ -1,4 +1,4 @@
-import { ORDEN_ESTADO_LABEL, ORDEN_ESTADO_COLOR } from "../admin/adminConstants";
+import { ORDEN_ESTADO_LABEL, ORDEN_ESTADO_COLOR } from "../../utils/pedidoUtils";
 
 const HistorialPedidos = ({ pedidos, cargando }) => {
   if (cargando) {

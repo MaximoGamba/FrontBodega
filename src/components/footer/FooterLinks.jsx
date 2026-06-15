@@ -1,12 +1,5 @@
 import { Link } from "react-router-dom";
-
-const LINKS = [
-  { label: "Inicio",           to: "/" },
-  { label: "Productos",        to: "/productos" },
-  { label: "Ofertas",          to: "/ofertas" },
-  { label: "Nuestra Historia", to: "/historia" },
-  { label: "Contacto",         to: "/contacto" },
-];
+import { NAV_LINKS } from "@/data/links";
 
 const FooterLinks = () => (
   <div>
@@ -14,7 +7,7 @@ const FooterLinks = () => (
       Categorías
     </p>
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-      {LINKS.map(({ label, to }) => (
+      {NAV_LINKS.map(({ label, to }) => (
         <Link key={to} to={to} style={{ fontSize: "14px", color: "var(--gray)", textDecoration: "none" }}>
           {label}
         </Link>

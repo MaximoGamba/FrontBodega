@@ -1,18 +1,15 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useCart } from "../context/CartContext";
+﻿import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { cambiarCantidad, quitarItem, vaciarCarrito } from "@/redux/carritoSlice";
+import { calcularSubtotal } from "../utils/formatters";
 import CartItem from "../components/cart/CartItem";
 import ResumenCarrito from "../components/cart/ResumenCarrito";
 
 const Cart = () => {
-  const { carrito, cambiarCantidad, quitarItem, vaciarCarrito } = useCart();
-
-  const subtotal = carrito.reduce((acc, item) => {
-    const precioFinal = item.discountPercent > 0
-      ? item.price * (1 - item.discountPercent / 100)
-      : item.price;
-    return acc + precioFinal * item.cantidad;
-  }, 0);
+  const dispatch = useDispatch();
+  const carrito = useSelector((state) => state.carrito.items);
+  const subtotal = calcularSubtotal(carrito);
 
   if (carrito.length === 0) {
     return (
@@ -39,7 +36,7 @@ const Cart = () => {
         <div>
           <p style={{ margin: "0 0 10px", fontSize: "14px" }}>¿Vaciar el carrito?</p>
           <div style={{ display: "flex", gap: "8px" }}>
-            <button onClick={() => { vaciarCarrito(); closeToast(); }} style={{ background: "var(--primary)", color: "white", border: "none", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Vaciar</button>
+            <button onClick={() => { dispatch(vaciarCarrito()); closeToast(); }} style={{ background: "var(--primary)", color: "white", border: "none", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Vaciar</button>
             <button onClick={closeToast} style={{ background: "none", border: "1px solid #ccc", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Cancelar</button>
           </div>
         </div>
@@ -68,7 +65,12 @@ const Cart = () => {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "48px", alignItems: "start" }}>
         <div>
           {carrito.map((item) => (
-            <CartItem key={item.id} item={item} onCambiarCantidad={cambiarCantidad} onEliminar={quitarItem} />
+            <CartItem
+              key={item.id}
+              item={item}
+              onCambiarCantidad={(id, delta) => dispatch(cambiarCantidad({ id, delta }))}
+              onEliminar={(id) => dispatch(quitarItem(id))}
+            />
           ))}
         </div>
         <ResumenCarrito carrito={carrito} subtotal={subtotal} />
