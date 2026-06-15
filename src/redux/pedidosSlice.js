@@ -24,8 +24,12 @@ export const getPedidosAdmin = createAsyncThunk(
 export const putEstadoPedido = createAsyncThunk(
   "pedidos/putEstado",
   async ({ id, status }, { rejectWithValue }) => {
-    try { return await actualizarEstadoPedido(id, status); }
-    catch (err) { return rejectWithValue(err.message); }
+    try {
+      await actualizarEstadoPedido(id, status);
+      return { id, status };
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
   }
 );
 

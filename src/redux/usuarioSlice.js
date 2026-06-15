@@ -34,19 +34,26 @@ export const getPedidosUsuario = createAsyncThunk(
 const usuarioSlice = createSlice({
   name: "usuario",
   initialState: {
-    datos:         null,
-    loading:       false,
-    error:         null,
-    pedidos:       [],
-    statusPedidos: "idle",
-    errorPedidos:  null,
+    datos:                null,
+    statusDatos:          "idle",
+    error:                null,
+    pedidos:              [],
+    statusPedidos:        "idle",
+    errorPedidos:         null,
+    newsletterSuscripto:  false,
+    emailNewsletter:      null,
   },
-  reducers: {},
+  reducers: {
+    suscribirNewsletter: (state, action) => {
+      state.newsletterSuscripto = true;
+      state.emailNewsletter = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(getUsuario.pending,   (state) => { state.loading = true; state.error = null; })
-      .addCase(getUsuario.fulfilled, (state, action) => { state.loading = false; state.datos = action.payload; })
-      .addCase(getUsuario.rejected,  (state, action) => { state.loading = false; state.error = action.payload; })
+      .addCase(getUsuario.pending,   (state) => { state.statusDatos = "loading"; state.error = null; })
+      .addCase(getUsuario.fulfilled, (state, action) => { state.statusDatos = "succeeded"; state.datos = action.payload; })
+      .addCase(getUsuario.rejected,  (state, action) => { state.statusDatos = "failed"; state.error = action.payload; })
 
       .addCase(putUsuario.fulfilled, (state, action) => {
         state.datos = { ...state.datos, ...action.payload };
@@ -64,13 +71,17 @@ const usuarioSlice = createSlice({
       })
 
       .addCase(logout, (state) => {
-        state.datos         = null;
-        state.error         = null;
-        state.pedidos       = [];
-        state.statusPedidos = "idle";
-        state.errorPedidos  = null;
+        state.datos                = null;
+        state.statusDatos          = "idle";
+        state.error                = null;
+        state.pedidos              = [];
+        state.statusPedidos        = "idle";
+        state.errorPedidos         = null;
+        state.newsletterSuscripto  = false;
+        state.emailNewsletter      = null;
       });
   },
 });
 
+export const { suscribirNewsletter } = usuarioSlice.actions;
 export default usuarioSlice.reducer;

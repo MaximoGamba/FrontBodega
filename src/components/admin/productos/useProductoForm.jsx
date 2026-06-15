@@ -114,7 +114,7 @@ const useProductoForm = ({ producto, opciones, onGuardado, onCerrar }) => {
     }
   };
 
-  return { form, errores, guardando, imageUrl, handleChange, handleGaleriaChange, confirmarCerrar, guardar };
+  return { form, errores, guardando, handleChange, handleGaleriaChange, confirmarCerrar, guardar };
 };
 
 export default useProductoForm;

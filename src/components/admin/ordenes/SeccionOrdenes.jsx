@@ -7,7 +7,7 @@ import EstadoCarga from "../../shared/EstadoCarga";
 
 const SeccionOrdenes = () => {
   const dispatch = useDispatch();
-  const { pedidos, cargando, error, actualizarEstado } = usePedidosAdmin();
+  const { pedidos, cargando, error } = usePedidosAdmin();
   const filtroEstado = useSelector((state) => state.adminUI.filtroOrdenesAdmin);
 
   const pedidosFiltrados = filtroEstado === "TODOS"
@@ -53,7 +53,7 @@ const SeccionOrdenes = () => {
             </thead>
             <tbody>
               {pedidosFiltrados.map((pedido) => (
-                <FilaOrden key={pedido.id} pedido={pedido} onEstadoActualizado={actualizarEstado} />
+                <FilaOrden key={pedido.id} pedido={pedido} />
               ))}
             </tbody>
           </table>

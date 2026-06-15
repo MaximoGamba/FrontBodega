@@ -13,14 +13,13 @@ const galeriaSlice = createSlice({
   name: "galeria",
   initialState: {
     subiendo: false,
-    error:    null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(uploadImagenThunk.pending,   (state) => { state.subiendo = true;  state.error = null; })
+      .addCase(uploadImagenThunk.pending,   (state) => { state.subiendo = true; })
       .addCase(uploadImagenThunk.fulfilled, (state) => { state.subiendo = false; })
-      .addCase(uploadImagenThunk.rejected,  (state, action) => { state.subiendo = false; state.error = action.payload; });
+      .addCase(uploadImagenThunk.rejected,  (state) => { state.subiendo = false; });
   },
 });
 

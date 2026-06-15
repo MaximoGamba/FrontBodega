@@ -2,7 +2,7 @@
 import CambiarPassword from "./CambiarPassword";
 import { labelStyle } from "../../styles/profileStyles";
 
-const DatosPersonales = ({ perfil, cargando, userId, onGuardado, onLogout }) => (
+const DatosPersonales = ({ perfil, cargando, userId, onLogout }) => (
   <div>
     <div style={{ border: "1px solid var(--border)", padding: "28px", marginBottom: "16px" }}>
       {cargando ? (
@@ -28,14 +28,12 @@ const DatosPersonales = ({ perfil, cargando, userId, onGuardado, onLogout }) => 
             valor={perfil.firstName}
             campo="firstName"
             userId={userId}
-            onGuardado={() => {}}
           />
           <CampoEditable
             label="Apellido"
             valor={perfil.lastName}
             campo="lastName"
             userId={userId}
-            onGuardado={() => {}}
           />
 
           <CambiarPassword userId={userId} />

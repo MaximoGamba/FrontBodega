@@ -1,30 +1,26 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getUsuario, putUsuario, getPedidosUsuario } from "@/redux/usuarioSlice";
+import { getUsuario, getPedidosUsuario } from "@/redux/usuarioSlice";
 
 const usePerfil = (userId, esAdmin) => {
   const dispatch = useDispatch();
   const datos         = useSelector((state) => state.usuario.datos);
-  const loading       = useSelector((state) => state.usuario.loading);
+  const status        = useSelector((state) => state.usuario.statusDatos);
   // usuarioSlice.pedidos = historial del usuario logueado; pedidosSlice = todos los pedidos (solo admin)
   const pedidos       = useSelector((state) => state.usuario.pedidos);
   const statusPedidos = useSelector((state) => state.usuario.statusPedidos);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || status !== "idle") return;
     dispatch(getUsuario(userId));
-  }, [dispatch, userId]);
+  }, [dispatch, userId, status]);
 
   useEffect(() => {
     if (!userId || esAdmin || statusPedidos !== "idle") return;
     dispatch(getPedidosUsuario(userId));
   }, [dispatch, userId, esAdmin, statusPedidos]);
 
-  const actualizarPerfil = (cambios) => {
-    dispatch(putUsuario({ userId, datos: cambios }));
-  };
-
-  return { perfil: datos, pedidos, cargando: loading, actualizarPerfil };
+  return { perfil: datos, pedidos, cargando: status === "loading" };
 };
 
 export default usePerfil;

@@ -1,10 +1,5 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
-const storage = {
-  getItem:    (key)        => Promise.resolve(window.localStorage.getItem(key)),
-  setItem:    (key, value) => Promise.resolve(window.localStorage.setItem(key, value)),
-  removeItem: (key)        => Promise.resolve(window.localStorage.removeItem(key)),
-};
 import authReducer from "./authSlice";
 import carritoReducer from "./carritoSlice";
 import vinosReducer from "./vinosSlice";
@@ -15,6 +10,12 @@ import checkoutReducer from "./checkoutSlice";
 import catalogoUIReducer from "./catalogoUISlice";
 import adminUIReducer from "./adminUISlice";
 import galeriaReducer from "./galeriaSlice";
+
+const storage = {
+  getItem:    (key)        => Promise.resolve(window.localStorage.getItem(key)),
+  setItem:    (key, value) => Promise.resolve(window.localStorage.setItem(key, value)),
+  removeItem: (key)        => Promise.resolve(window.localStorage.removeItem(key)),
+};
 
 const rootReducer = combineReducers({
   auth:       authReducer,
@@ -32,7 +33,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key:       "root",
   storage,
-  whitelist: ["auth", "carrito"],
+  whitelist: ["auth", "carrito", "usuario"],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -12,11 +12,10 @@ const Perfil = () => {
   const navigate = useNavigate();
   const usuario = useSelector((state) => state.auth.usuario);
   const esAdmin = usuario?.rol === ROL_ADMIN;
-  const { perfil, pedidos, cargando, actualizarPerfil } = usePerfil(usuario?.id, esAdmin);
+  const { perfil, pedidos, cargando } = usePerfil(usuario?.id, esAdmin);
 
   useEffect(() => {
-    if (!usuario) { navigate("/login"); return; }
-    if (!usuario.id) { dispatch(logout()); navigate("/login"); }
+    if (usuario && !usuario.id) { dispatch(logout()); navigate("/login"); }
   }, [usuario, dispatch, navigate]);
 
   if (!usuario) return null;
@@ -37,7 +36,6 @@ const Perfil = () => {
           perfil={perfil}
           cargando={cargando}
           userId={usuario.id}
-          onGuardado={actualizarPerfil}
           onLogout={handleLogout}
         />
 

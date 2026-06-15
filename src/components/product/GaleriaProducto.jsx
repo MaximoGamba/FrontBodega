@@ -1,4 +1,4 @@
-const GaleriaProducto = ({ imagenMostrada, todasImagenes, onSeleccionar, discountPercent, stock, nombre }) => (
+const GaleriaProducto = ({ imagenMostrada, discountPercent, stock, nombre }) => (
   <div>
     <div style={{ position: "relative" }}>
       <img
@@ -17,20 +17,6 @@ const GaleriaProducto = ({ imagenMostrada, todasImagenes, onSeleccionar, discoun
         </span>
       )}
     </div>
-
-    {todasImagenes.length > 1 && (
-      <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
-        {todasImagenes.map((url) => (
-          <img
-            key={url}
-            src={url}
-            alt=""
-            onClick={() => onSeleccionar(url)}
-            style={{ width: "60px", height: "60px", objectFit: "cover", cursor: "pointer", border: imagenMostrada === url ? "2px solid var(--primary)" : "2px solid transparent", opacity: imagenMostrada === url ? 1 : 0.65 }}
-          />
-        ))}
-      </div>
-    )}
   </div>
 );
 

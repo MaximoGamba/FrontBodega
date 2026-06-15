@@ -15,15 +15,17 @@ const NavAcciones = () => {
   return (
     <>
       {!esAdmin && <CarritoIcono totalItems={totalItems} />}
-      <Link to={usuario ? "/perfil" : "/login"} style={{ color: "var(--neutral)" }}>
-        <LuUser size={20} />
-      </Link>
-      {!usuario ? (
+      {usuario ? (
+        <>
+          <Link to="/perfil" style={{ color: "var(--neutral)" }}>
+            <LuUser size={20} />
+          </Link>
+          <BotonLogout />
+        </>
+      ) : (
         <Link to="/login" style={{ fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--neutral)", textDecoration: "none" }}>
           Iniciar sesión
         </Link>
-      ) : (
-        <BotonLogout />
       )}
     </>
   );

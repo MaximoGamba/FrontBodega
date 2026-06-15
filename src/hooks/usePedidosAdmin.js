@@ -1,6 +1,6 @@
 ﻿import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getPedidosAdmin, putEstadoPedido, selectAllPedidos } from "@/redux/pedidosSlice";
+import { getPedidosAdmin, selectAllPedidos } from "@/redux/pedidosSlice";
 
 const PEDIDOS_TTL = 5 * 60 * 1000;
 
@@ -18,15 +18,10 @@ const usePedidosAdmin = () => {
     }
   }, [dispatch, status, statusAt]);
 
-  const actualizarEstado = ({ id, status: nuevoStatus }) => {
-    dispatch(putEstadoPedido({ id, status: nuevoStatus }));
-  };
-
   return {
     pedidos,
     cargando: status === "loading",
     error,
-    actualizarEstado,
   };
 };
 
