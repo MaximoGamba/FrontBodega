@@ -1,9 +1,11 @@
-import { useState } from "react";
+﻿import { useDispatch, useSelector } from "react-redux";
+import { setTabAdmin } from "@/redux/adminUISlice";
 import SeccionProductos from "../components/admin/productos/SeccionProductos";
 import SeccionOrdenes from "../components/admin/ordenes/SeccionOrdenes";
 
 const Admin = () => {
-  const [pestana, setPestana] = useState("productos");
+  const dispatch = useDispatch();
+  const pestana = useSelector((state) => state.adminUI.tabAdmin);
 
   const tabStyle = (activa) => ({
     background: "none", border: "none", borderBottom: activa ? "2px solid var(--primary)" : "2px solid transparent",
@@ -18,8 +20,8 @@ const Admin = () => {
         Panel de Administración
       </h1>
       <div style={{ borderBottom: "1px solid var(--border)", marginBottom: "32px" }}>
-        <button style={tabStyle(pestana === "productos")} onClick={() => setPestana("productos")}>Productos</button>
-        <button style={tabStyle(pestana === "ordenes")} onClick={() => setPestana("ordenes")}>Órdenes</button>
+        <button style={tabStyle(pestana === "productos")} onClick={() => dispatch(setTabAdmin("productos"))}>Productos</button>
+        <button style={tabStyle(pestana === "ordenes")}  onClick={() => dispatch(setTabAdmin("ordenes"))}>Órdenes</button>
       </div>
       {pestana === "productos" ? <SeccionProductos /> : <SeccionOrdenes />}
     </div>

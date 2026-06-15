@@ -1,4 +1,4 @@
-import { inputStyle, labelStyle, errorStyle } from "../adminConstants";
+﻿import { inputStyle, labelStyle, errorStyle } from "../../../styles/adminStyles";
 
 const CamposProducto = ({ form, errores, handleChange, selectOpciones }) => (
   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginBottom: "16px" }}>

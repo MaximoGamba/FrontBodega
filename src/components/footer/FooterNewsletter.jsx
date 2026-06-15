@@ -1,5 +1,6 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { LuArrowRight } from "react-icons/lu";
+import { validarEmail } from "../../utils/validators";
 
 const FooterNewsletter = () => {
   const [email, setEmail] = useState("");
@@ -9,7 +10,8 @@ const FooterNewsletter = () => {
   const handleSuscribir = () => {
     setError(""); setExito(false);
     if (!email.trim()) { setError("Ingresá tu email."); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("El email no es válido."); return; }
+    if (!validarEmail(email)) { setError("El email no es válido."); return; }
+    // TODO: conectar endpoint de suscripción de newsletter
     setExito(true);
     setEmail("");
     setTimeout(() => setExito(false), 3000);

@@ -1,41 +1,21 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { LuUser, LuShoppingBag } from "react-icons/lu";
-import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../../redux/slices/authSlice";
-import { limpiarCarritoAlLogout } from "../../redux/slices/carritoSlice";
-import ModalConfirmar from "../ModalConfirmar";
+import { Link } from "react-router-dom";
+import { LuUser } from "react-icons/lu";
+import { useSelector } from "react-redux";
+import { ROL_ADMIN } from "@/utils/roles";
+import CarritoIcono from "./CarritoIcono";
+import BotonLogout from "./BotonLogout";
 
 const NavAcciones = () => {
-  const dispatch = useDispatch();
+  // Selectores granulares: cada uno re-renderiza solo por su dato específico
   const usuario = useSelector((state) => state.auth.usuario);
-  const carrito = useSelector((state) => state.carrito.items);
-  const navigate = useNavigate();
-  const esAdmin = usuario?.rol === "admin";
-  const totalItems = carrito.reduce((acc, item) => acc + item.cantidad, 0);
-
-  const [modalLogout, setModalLogout] = useState(false);
-
-  const confirmarLogout = () => setModalLogout(true);
-
-  const handleLogout = () => {
-    dispatch(limpiarCarritoAlLogout());
-    dispatch(logout());
-    navigate("/");
-  };
+  const esAdmin = useSelector((state) => state.auth.usuario?.rol === ROL_ADMIN);
+  const totalItems = useSelector((state) =>
+    state.carrito.items.reduce((acc, item) => acc + item.cantidad, 0)
+  );
 
   return (
     <>
-      {!esAdmin && (
-        <Link to="/carrito" style={{ position: "relative", color: "var(--neutral)" }}>
-          <LuShoppingBag size={20} />
-          {totalItems > 0 && (
-            <span style={{ position: "absolute", top: "-8px", right: "-8px", background: "var(--primary)", color: "white", borderRadius: "50%", width: "18px", height: "18px", fontSize: "11px", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              {totalItems}
-            </span>
-          )}
-        </Link>
-      )}
+      {!esAdmin && <CarritoIcono totalItems={totalItems} />}
       <Link to={usuario ? "/perfil" : "/login"} style={{ color: "var(--neutral)" }}>
         <LuUser size={20} />
       </Link>
@@ -44,20 +24,8 @@ const NavAcciones = () => {
           Iniciar sesión
         </Link>
       ) : (
-        <button
-          onClick={confirmarLogout}
-          style={{ background: "none", border: "none", fontSize: "13px", letterSpacing: "1px", textTransform: "uppercase", color: "var(--neutral)", cursor: "pointer", padding: 0 }}
-        >
-          Cerrar sesión
-        </button>
+        <BotonLogout />
       )}
-      <ModalConfirmar
-        visible={modalLogout}
-        mensaje="¿Seguro que querés cerrar sesión?"
-        textoConfirmar="Cerrar sesión"
-        onConfirmar={() => { setModalLogout(false); handleLogout(); }}
-        onCancelar={() => setModalLogout(false)}
-      />
     </>
   );
 };

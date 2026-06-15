@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { procesarCheckout, resetCheckout } from "../redux/slices/pedidosSlice";
-import { vaciarCarrito } from "../redux/slices/carritoSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { procesarCheckout, setPaso, setEnvioField, setPagoField, resetCheckout } from "@/redux/checkoutSlice";
 import { validarEmail, validarVencimiento } from "../utils/validators";
-import { soloNumeros } from "../utils/formatters";
+import { ROL_ADMIN } from "../utils/roles";
+import { soloNumeros, calcularSubtotal } from "../utils/formatters";
 import IndicadorPasos from "../components/checkout/IndicadorPasos";
 import PasoEnvio from "../components/checkout/PasoEnvio";
 import PasoPago from "../components/checkout/PasoPago";
@@ -12,54 +12,34 @@ import PasoConfirmacion from "../components/checkout/PasoConfirmacion";
 
 const Checkout = () => {
   const dispatch = useDispatch();
-  const carrito = useSelector((state) => state.carrito.items);
-  const usuario = useSelector((state) => state.auth.usuario);
-  const { checkoutLoading: enviando, checkoutExitoso, error: errorCheckout } = useSelector((state) => state.pedidos);
-  const [paso, setPaso] = useState(0);
-  const [envio, setEnvio] = useState({
-    nombre: "", apellido: "", email: "", telefono: "",
-    direccion: "", ciudad: "", provincia: "", codigoPostal: "",
-  });
-  const [pago, setPago] = useState({
-    metodo: "tarjeta", nombreTarjeta: "", numeroTarjeta: "", vencimiento: "", cvv: "",
-  });
+  const usuario  = useSelector((state) => state.auth.usuario);
+  const carrito  = useSelector((state) => state.carrito.items);
+  const { paso, loading: enviando, error: errorBackend, envio, pago } =
+    useSelector((state) => state.checkout);
+
   const [errorEnvio, setErrorEnvio] = useState("");
-  const [errorPago, setErrorPago] = useState("");
+  const [errorPago,  setErrorPago]  = useState("");
 
-  useEffect(() => {
-    if (checkoutExitoso) {
-      dispatch(vaciarCarrito());
-      setPaso(2);
-    }
-  }, [checkoutExitoso, dispatch]);
+  useEffect(() => { return () => { dispatch(resetCheckout()); }; }, [dispatch]);
 
-  useEffect(() => {
-    return () => dispatch(resetCheckout());
-  }, [dispatch]);
+  if (usuario?.rol === ROL_ADMIN) return <Navigate to="/" replace />;
 
-  if (usuario?.rol === "admin") return <Navigate to="/" replace />;
+  const subtotal = calcularSubtotal(carrito);
 
-  const subtotal = carrito.reduce((acc, item) => {
-    const precioFinal = item.discountPercent > 0
-      ? item.price * (1 - item.discountPercent / 100)
-      : item.price;
-    return acc + precioFinal * item.cantidad;
-  }, 0);
-
-  const setE = (campo, valor) => setEnvio((prev) => ({ ...prev, [campo]: valor }));
+  const setE = (campo, valor) => dispatch(setEnvioField({ campo, valor }));
+  const setP = (campo, valor) => dispatch(setPagoField({ campo, valor }));
 
   const avanzarEnvio = () => {
     const { nombre, apellido, email, telefono, direccion, ciudad, provincia, codigoPostal } = envio;
     if (!nombre || !apellido || !email || !telefono || !direccion || !ciudad || !provincia || !codigoPostal) {
-      setErrorEnvio("Completá todos los campos antes de continuar.");
-      return;
+      setErrorEnvio("Completá todos los campos antes de continuar."); return;
     }
     if (!validarEmail(email)) { setErrorEnvio("El email no tiene un formato válido."); return; }
     if (soloNumeros(telefono).length < 6) { setErrorEnvio("El teléfono debe tener al menos 6 dígitos."); return; }
     const cp = soloNumeros(codigoPostal);
     if (cp.length < 4 || cp.length > 8) { setErrorEnvio("El código postal debe tener entre 4 y 8 dígitos."); return; }
     setErrorEnvio("");
-    setPaso(1);
+    dispatch(setPaso(1));
   };
 
   const confirmar = () => {
@@ -80,7 +60,7 @@ const Checkout = () => {
       }
     }
     setErrorPago("");
-    dispatch(procesarCheckout({ carrito, subtotal, envio, pago }));
+    dispatch(procesarCheckout());
   };
 
   return (
@@ -101,10 +81,10 @@ const Checkout = () => {
       {paso === 1 && (
         <PasoPago
           pago={pago}
-          setPago={setPago}
-          errorPago={errorPago || errorCheckout}
+          setP={setP}
+          errorPago={errorPago || errorBackend}
           enviando={enviando}
-          onVolver={() => setPaso(0)}
+          onVolver={() => dispatch(setPaso(0))}
           onConfirmar={confirmar}
           carrito={carrito}
           subtotal={subtotal}

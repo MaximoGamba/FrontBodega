@@ -1,4 +1,5 @@
-import { Link, useNavigate } from "react-router-dom";
+﻿import { Link, useNavigate } from "react-router-dom";
+import ListaResumenItems from "../shared/ListaResumenItems";
 
 const ResumenCarrito = ({ carrito, subtotal }) => {
   const navigate = useNavigate();
@@ -9,22 +10,7 @@ const ResumenCarrito = ({ carrito, subtotal }) => {
         Resumen del pedido
       </p>
 
-      {carrito.map((item) => {
-        const precioFinal = item.discountPercent > 0
-          ? item.price * (1 - item.discountPercent / 100)
-          : item.price;
-        return (
-          <div key={item.id} style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", marginBottom: "10px", color: "var(--gray)" }}>
-            <span>{item.name} × {item.cantidad}</span>
-            <span>${(precioFinal * item.cantidad).toLocaleString()}</span>
-          </div>
-        );
-      })}
-
-      <div style={{ borderTop: "1px solid var(--border)", marginTop: "16px", paddingTop: "16px", display: "flex", justifyContent: "space-between", fontWeight: "600", fontSize: "16px" }}>
-        <span>Total</span>
-        <span>${subtotal.toLocaleString()}</span>
-      </div>
+      <ListaResumenItems items={carrito} total={subtotal} />
 
       <button
         onClick={() => navigate("/checkout")}

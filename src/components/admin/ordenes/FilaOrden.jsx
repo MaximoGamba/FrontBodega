@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { ORDEN_ESTADO_LABEL, ORDEN_ESTADO_COLOR } from "../adminConstants";
+﻿import { useState } from "react";
+import { ORDEN_ESTADO_LABEL, ORDEN_ESTADO_COLOR } from "../../../utils/pedidoUtils";
 import DetalleProductos from "./DetalleProductos";
 import DetalleEnvio from "./DetalleEnvio";
 import DetallePago from "./DetallePago";
 import CambiarEstado from "./CambiarEstado";
 
-const FilaOrden = ({ pedido }) => {
+const FilaOrden = ({ pedido, onEstadoActualizado }) => {
   const [expandida, setExpandida] = useState(false);
 
   const colores = ORDEN_ESTADO_COLOR[pedido.status] || { bg: "#f5f5f5", text: "var(--gray)" };
@@ -48,6 +48,7 @@ const FilaOrden = ({ pedido }) => {
               <CambiarEstado
                 pedidoId={pedido.id}
                 estadoActual={pedido.status}
+                onEstadoActualizado={onEstadoActualizado}
               />
             </div>
           </td>

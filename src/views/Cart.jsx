@@ -1,23 +1,15 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { cambiarCantidad, quitarItem, vaciarCarrito } from "../redux/slices/carritoSlice";
+﻿import { Link } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import { cambiarCantidad, quitarItem, vaciarCarrito } from "@/redux/carritoSlice";
+import { calcularSubtotal } from "../utils/formatters";
 import CartItem from "../components/cart/CartItem";
 import ResumenCarrito from "../components/cart/ResumenCarrito";
-import ModalConfirmar from "../components/ModalConfirmar";
 
 const Cart = () => {
   const dispatch = useDispatch();
   const carrito = useSelector((state) => state.carrito.items);
-
-  const [modalVaciar, setModalVaciar] = useState(false);
-
-  const subtotal = carrito.reduce((acc, item) => {
-    const precioFinal = item.discountPercent > 0
-      ? item.price * (1 - item.discountPercent / 100)
-      : item.price;
-    return acc + precioFinal * item.cantidad;
-  }, 0);
+  const subtotal = calcularSubtotal(carrito);
 
   if (carrito.length === 0) {
     return (
@@ -38,7 +30,20 @@ const Cart = () => {
     );
   }
 
-  const confirmarVaciar = () => setModalVaciar(true);
+  const confirmarVaciar = () => {
+    toast(
+      ({ closeToast }) => (
+        <div>
+          <p style={{ margin: "0 0 10px", fontSize: "14px" }}>¿Vaciar el carrito?</p>
+          <div style={{ display: "flex", gap: "8px" }}>
+            <button onClick={() => { dispatch(vaciarCarrito()); closeToast(); }} style={{ background: "var(--primary)", color: "white", border: "none", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Vaciar</button>
+            <button onClick={closeToast} style={{ background: "none", border: "1px solid #ccc", padding: "6px 14px", fontSize: "12px", cursor: "pointer" }}>Cancelar</button>
+          </div>
+        </div>
+      ),
+      { autoClose: false, closeButton: false, toastId: "vaciar-carrito" }
+    );
+  };
 
   return (
     <div style={{ maxWidth: "1100px", margin: "0 auto", padding: "40px 24px" }}>
@@ -60,20 +65,16 @@ const Cart = () => {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: "48px", alignItems: "start" }}>
         <div>
           {carrito.map((item) => (
-            <CartItem key={item.id} item={item} onCambiarCantidad={(id, delta) => dispatch(cambiarCantidad({ id, delta }))} onEliminar={(id) => dispatch(quitarItem(id))} />
+            <CartItem
+              key={item.id}
+              item={item}
+              onCambiarCantidad={(id, delta) => dispatch(cambiarCantidad({ id, delta }))}
+              onEliminar={(id) => dispatch(quitarItem(id))}
+            />
           ))}
         </div>
         <ResumenCarrito carrito={carrito} subtotal={subtotal} />
       </div>
-
-      <ModalConfirmar
-        visible={modalVaciar}
-        mensaje="¿Querés vaciar el carrito?"
-        textoConfirmar="Vaciar"
-        peligroso
-        onConfirmar={() => { dispatch(vaciarCarrito()); setModalVaciar(false); }}
-        onCancelar={() => setModalVaciar(false)}
-      />
     </div>
   );
 };

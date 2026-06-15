@@ -1,10 +1,6 @@
-import CampoEditable from "./CampoEditable";
+﻿import CampoEditable from "./CampoEditable";
 import CambiarPassword from "./CambiarPassword";
-
-const labelStyle = {
-  fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase",
-  color: "var(--gray)", marginBottom: "6px",
-};
+import { labelStyle } from "../../styles/profileStyles";
 
 const DatosPersonales = ({ perfil, cargando, userId, onGuardado, onLogout }) => (
   <div>

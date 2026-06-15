@@ -1,16 +1,8 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { actualizarUsuario } from "../../redux/slices/usuariosSlice";
-
-const labelStyle = {
-  fontSize: "11px", letterSpacing: "1.5px", textTransform: "uppercase",
-  color: "var(--gray)", marginBottom: "6px",
-};
-
-const inputStyle = {
-  width: "100%", border: "1px solid var(--border)", padding: "10px 12px",
-  fontSize: "14px", fontFamily: "var(--font-sans)", outline: "none", boxSizing: "border-box",
-};
+import { putUsuario } from "@/redux/usuarioSlice";
+import { inputStyle, labelStyle } from "../../styles/profileStyles";
+import Boton from "../shared/Boton";
 
 const CampoEditable = ({ label, valor, campo, userId, onGuardado }) => {
   const dispatch = useDispatch();
@@ -23,22 +15,17 @@ const CampoEditable = ({ label, valor, campo, userId, onGuardado }) => {
     if (!input.trim()) return;
     setGuardando(true);
     setError("");
-    try {
-      const actualizado = await dispatch(actualizarUsuario({ userId, datos: { [campo]: input.trim() } })).unwrap();
-      onGuardado(actualizado);
+    const result = await dispatch(putUsuario({ userId, datos: { [campo]: input.trim() } }));
+    setGuardando(false);
+    if (putUsuario.fulfilled.match(result)) {
+      onGuardado(result.payload);
       setEditando(false);
-    } catch {
+    } else {
       setError("Error al guardar.");
-    } finally {
-      setGuardando(false);
     }
   };
 
-  const cancelar = () => {
-    setInput(valor || "");
-    setError("");
-    setEditando(false);
-  };
+  const cancelar = () => { setInput(valor || ""); setError(""); setEditando(false); };
 
   return (
     <div style={{ marginBottom: "20px" }}>
@@ -53,19 +40,10 @@ const CampoEditable = ({ label, valor, campo, userId, onGuardado }) => {
           />
           {error && <p style={{ fontSize: "12px", color: "var(--primary)", marginBottom: "8px" }}>{error}</p>}
           <div style={{ display: "flex", gap: "8px" }}>
-            <button
-              onClick={guardar}
-              disabled={guardando}
-              style={{ background: "var(--primary)", color: "white", border: "none", padding: "8px 20px", fontSize: "12px", letterSpacing: "1px", textTransform: "uppercase", cursor: "pointer", opacity: guardando ? 0.7 : 1 }}
-            >
+            <Boton variante="primario" tamaño="sm" disabled={guardando} onClick={guardar}>
               {guardando ? "Guardando..." : "Guardar"}
-            </button>
-            <button
-              onClick={cancelar}
-              style={{ background: "white", color: "var(--neutral)", border: "1px solid var(--border)", padding: "8px 20px", fontSize: "12px", letterSpacing: "1px", textTransform: "uppercase", cursor: "pointer" }}
-            >
-              Cancelar
-            </button>
+            </Boton>
+            <Boton variante="secundario" tamaño="sm" onClick={cancelar}>Cancelar</Boton>
           </div>
         </div>
       ) : (

@@ -1,9 +1,5 @@
-import { labelStyle } from "../adminConstants";
-
-const PAGO_METODO_LABEL = {
-  TARJETA: "Tarjeta",
-  TRANSFERENCIA: "Transferencia",
-};
+﻿import { labelStyle } from "../../../styles/adminStyles";
+import { PAGO_METODO_LABEL } from "../../../utils/pedidoUtils";
 
 const DetallePago = ({ payment }) => (
   <div>

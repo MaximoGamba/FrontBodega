@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
+import { calcularPrecioFinal } from "../../utils/formatters";
 
 const btnCantidad = {
   width: "28px",
@@ -13,10 +14,7 @@ const btnCantidad = {
 };
 
 const CartItem = ({ item, onCambiarCantidad, onEliminar }) => {
-  const precioFinal =
-    item.discountPercent > 0
-      ? item.price * (1 - item.discountPercent / 100)
-      : item.price;
+  const precioFinal = calcularPrecioFinal(item.price, item.discountPercent);
 
   return (
     <div

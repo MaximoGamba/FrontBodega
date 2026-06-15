@@ -1,97 +1,12 @@
-import { useState } from "react";
-import { toast } from "react-toastify";
-import { uploadImagen } from "../../../../services/api";
-import { labelStyle, errorStyle } from "../../adminConstants";
+﻿import useImagenGaleria from "./useImagenGaleria";
+import { labelStyle, errorStyle } from "../../../../styles/adminStyles";
 import MiniaturaImagen from "./MiniaturaImagen";
 
-const GaleriaImagenesAdmin = ({ imagenInicial, productId, error, onChange }) => {
-  const [mostrarGaleria, setMostrarGaleria] = useState(false);
-  const [subiendoImagen, setSubiendoImagen] = useState(false);
-
-  const [imagenPrincipal, setImagenPrincipal] = useState(imagenInicial || "");
-
-  const [imagenesSeleccionadas, setImagenesSeleccionadas] = useState(() => {
-    const guardadas = (() => {
-      try { return JSON.parse(localStorage.getItem(`bodega_imgs_${productId}`)) || []; }
-      catch { return []; }
-    })();
-    return [...new Set([imagenInicial, ...guardadas])].filter(Boolean);
-  });
-
-  const [galeria, setGaleria] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("bodega_imagenes")) || []; }
-    catch { return []; }
-  });
-
-  const LIMITE_GALERIA = 100;
-
-  const notificar = (principal, imgs) => onChange?.(principal, imgs);
-
-  const actualizarGaleria = (nuevas, prev) => {
-    const todas = [...new Set([...nuevas, ...prev])].slice(0, LIMITE_GALERIA);
-    localStorage.setItem("bodega_imagenes", JSON.stringify(todas));
-    return todas;
-  };
-
-  const handleImagen = async (e) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-    setSubiendoImagen(true);
-    const urlsSubidas = [];
-    try {
-      for (const file of files) {
-        const url = await uploadImagen(file);
-        urlsSubidas.push(url);
-      }
-      const nuevasSeleccionadas = [...new Set([...imagenesSeleccionadas, ...urlsSubidas])];
-      const nuevaPrincipal = imagenPrincipal || urlsSubidas[0];
-      setGaleria((prev) => actualizarGaleria(urlsSubidas, prev));
-      setImagenesSeleccionadas(nuevasSeleccionadas);
-      setImagenPrincipal(nuevaPrincipal);
-      notificar(nuevaPrincipal, nuevasSeleccionadas);
-    } catch {
-      if (urlsSubidas.length > 0) {
-        const nuevasSeleccionadas = [...new Set([...imagenesSeleccionadas, ...urlsSubidas])];
-        const nuevaPrincipal = imagenPrincipal || urlsSubidas[0];
-        setGaleria((prev) => {
-          const todas = [...new Set([...urlsSubidas, ...prev])];
-          localStorage.setItem("bodega_imagenes", JSON.stringify(todas));
-          return todas;
-        });
-        setImagenesSeleccionadas(nuevasSeleccionadas);
-        setImagenPrincipal(nuevaPrincipal);
-        notificar(nuevaPrincipal, nuevasSeleccionadas);
-        toast.warning(`Se subieron ${urlsSubidas.length} de ${files.length} imágenes.`);
-      } else {
-        toast.error("Error al subir las imágenes.");
-      }
-    } finally {
-      setSubiendoImagen(false);
-      e.target.value = "";
-    }
-  };
-
-  const onSetPrincipal = (url) => {
-    setImagenPrincipal(url);
-    notificar(url, imagenesSeleccionadas);
-  };
-
-  const onEliminarImagen = (url) => {
-    const nuevas = imagenesSeleccionadas.filter((u) => u !== url);
-    const nuevaPrincipal = imagenPrincipal === url ? (nuevas[0] || "") : imagenPrincipal;
-    setImagenesSeleccionadas(nuevas);
-    setImagenPrincipal(nuevaPrincipal);
-    notificar(nuevaPrincipal, nuevas);
-  };
-
-  const onSelectFromGallery = (url) => {
-    const nuevas = [...new Set([...imagenesSeleccionadas, url])];
-    const nuevaPrincipal = imagenPrincipal || url;
-    setImagenesSeleccionadas(nuevas);
-    setImagenPrincipal(nuevaPrincipal);
-    setMostrarGaleria(false);
-    notificar(nuevaPrincipal, nuevas);
-  };
+const GaleriaImagenesAdmin = ({ imagenInicial, error, onChange }) => {
+  const {
+    mostrarGaleria, subiendoImagen, imagenPrincipal, imagenesSeleccionadas,
+    galeria, toggleGaleria, handleImagen, onSetPrincipal, onEliminarImagen, onSelectFromGallery,
+  } = useImagenGaleria({ imagenInicial, onChange });
 
   return (
     <div style={{ marginBottom: "16px" }}>
@@ -112,7 +27,7 @@ const GaleriaImagenesAdmin = ({ imagenInicial, productId, error, onChange }) => 
       )}
 
       <div style={{ display: "flex", gap: "8px", marginBottom: "10px" }}>
-        <button type="button" onClick={() => setMostrarGaleria((v) => !v)}
+        <button type="button" onClick={toggleGaleria}
           style={{ background: "white", border: "1px solid var(--border)", padding: "6px 14px", fontSize: "11px", letterSpacing: "1px", textTransform: "uppercase", cursor: "pointer" }}>
           {mostrarGaleria ? "Cerrar galería" : "Elegir de galería"}
         </button>

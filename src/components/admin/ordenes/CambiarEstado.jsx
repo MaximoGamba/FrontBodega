@@ -1,27 +1,25 @@
-import { useState, useEffect } from "react";
-import { toast } from "react-toastify";
+import { useState } from "react";
 import { useDispatch } from "react-redux";
-import { actualizarEstadoPedido } from "../../../redux/slices/pedidosSlice";
-import { inputStyle, labelStyle, ORDEN_ESTADO_LABEL } from "../adminConstants";
+import { toast } from "react-toastify";
+import { putEstadoPedido } from "@/redux/pedidosSlice";
+import { inputStyle, labelStyle } from "../../../styles/adminStyles";
+import { ORDEN_ESTADO_LABEL } from "../../../utils/pedidoUtils";
+import Boton from "../../shared/Boton";
 
-const CambiarEstado = ({ pedidoId, estadoActual }) => {
+const CambiarEstado = ({ pedidoId, estadoActual, onEstadoActualizado }) => {
   const dispatch = useDispatch();
-  const [nuevoEstado, setNuevoEstado] = useState(estadoActual);
   const [guardando, setGuardando] = useState(false);
-
-  useEffect(() => {
-    setNuevoEstado(estadoActual);
-  }, [estadoActual]);
+  const [nuevoEstado, setNuevoEstado] = useState(estadoActual);
 
   const guardarEstado = async () => {
     if (nuevoEstado === estadoActual) return;
     setGuardando(true);
-    try {
-      await dispatch(actualizarEstadoPedido({ id: pedidoId, status: nuevoEstado })).unwrap();
-    } catch {
+    const result = await dispatch(putEstadoPedido({ id: pedidoId, status: nuevoEstado }));
+    setGuardando(false);
+    if (putEstadoPedido.fulfilled.match(result)) {
+      onEstadoActualizado(result.payload);
+    } else {
       toast.error("Error al actualizar el estado.");
-    } finally {
-      setGuardando(false);
     }
   };
 
@@ -38,19 +36,14 @@ const CambiarEstado = ({ pedidoId, estadoActual }) => {
           <option key={val} value={val}>{lbl}</option>
         ))}
       </select>
-      <button
-        onClick={(e) => { e.stopPropagation(); guardarEstado(); }}
+      <Boton
+        variante="primario"
+        tamaño="sm"
         disabled={guardando || nuevoEstado === estadoActual}
-        style={{
-          background: "var(--primary)", color: "white", border: "none",
-          padding: "9px 24px", fontSize: "12px", letterSpacing: "1px",
-          textTransform: "uppercase",
-          cursor: guardando || nuevoEstado === estadoActual ? "not-allowed" : "pointer",
-          opacity: guardando || nuevoEstado === estadoActual ? 0.5 : 1,
-        }}
+        onClick={(e) => { e.stopPropagation(); guardarEstado(); }}
       >
         {guardando ? "Guardando..." : "Actualizar"}
-      </button>
+      </Boton>
     </div>
   );
 };

@@ -1,32 +1,6 @@
-import { useEffect } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { fetchPedidosUsuario } from "../../redux/slices/pedidosSlice";
+import { ORDEN_ESTADO_LABEL, ORDEN_ESTADO_COLOR } from "../../utils/pedidoUtils";
 
-const ESTADO_LABEL = {
-  CREATED: "Pendiente",
-  PAID: "Pagado",
-  SHIPPED: "En camino",
-  DELIVERED: "Entregado",
-  CANCELLED: "Cancelado",
-};
-
-const ESTADO_COLOR = {
-  CREATED: "var(--gray)",
-  PAID: "var(--tertiary)",
-  SHIPPED: "#b07d00",
-  DELIVERED: "#1a56db",
-  CANCELLED: "#c0392b",
-};
-
-const HistorialPedidos = () => {
-  const dispatch = useDispatch();
-  const usuario = useSelector((state) => state.auth.usuario);
-  const { pedidosUsuario: pedidos, loading: cargando } = useSelector((state) => state.pedidos);
-
-  useEffect(() => {
-    if (usuario?.id) dispatch(fetchPedidosUsuario(usuario.id));
-  }, [dispatch, usuario?.id]);
-
+const HistorialPedidos = ({ pedidos, cargando }) => {
   if (cargando) {
     return <p style={{ color: "var(--gray)", fontSize: "14px" }}>Cargando pedidos...</p>;
   }
@@ -38,9 +12,8 @@ const HistorialPedidos = () => {
   return (
     <>
       {pedidos.map((pedido) => {
-        const estado = pedido.status;
-        const color = ESTADO_COLOR[estado] || "var(--gray)";
-        const label = ESTADO_LABEL[estado] || estado;
+        const color = ORDEN_ESTADO_COLOR[pedido.status]?.text || "var(--gray)";
+        const label = ORDEN_ESTADO_LABEL[pedido.status] || pedido.status;
         const fecha = pedido.createdAt
           ? new Date(pedido.createdAt).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })
           : "—";

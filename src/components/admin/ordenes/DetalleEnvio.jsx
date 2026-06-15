@@ -1,11 +1,5 @@
-import { labelStyle } from "../adminConstants";
-
-const ENVIO_ESTADO_LABEL = {
-  PENDING: "Pendiente",
-  SHIPPED: "Enviado",
-  DELIVERED: "Entregado",
-  CANCELLED: "Cancelado",
-};
+﻿import { labelStyle } from "../../../styles/adminStyles";
+import { ENVIO_ESTADO_LABEL } from "../../../utils/pedidoUtils";
 
 const DetalleEnvio = ({ shipment }) => (
   <div>

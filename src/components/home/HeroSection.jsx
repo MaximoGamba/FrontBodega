@@ -1,9 +1,10 @@
 import { Link } from "react-router-dom";
+import heroImg from "../../assets/hero.png";
 
 const HeroSection = () => (
   <section style={{ position: "relative", height: "600px", overflow: "hidden" }}>
     <img
-      src="https://images.unsplash.com/photo-1464638681273-0962e9b53566?q=80&w=2940&auto=format&fit=crop"
+      src={heroImg}
       alt="Viñedo"
       style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center bottom" }}
     />

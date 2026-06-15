@@ -1,26 +1,8 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { agregarItem } from "../../redux/slices/carritoSlice";
-import { toast } from "react-toastify";
+﻿import { Link } from "react-router-dom";
+import useProductCard from "../../hooks/useProductCard";
 
 const ProductCard = ({ producto }) => {
-  const dispatch = useDispatch();
-  const usuario = useSelector((state) => state.auth.usuario);
-  const carrito = useSelector((state) => state.carrito.items);
-  const navigate = useNavigate();
-  const esAdmin = usuario?.rol === "admin";
-  const enCarrito = carrito.find((i) => i.id === producto.id)?.cantidad ?? 0;
-  const sinDisponible = producto.stock === 0 || enCarrito >= producto.stock;
-
-  const precioFinal = producto.discountPercent > 0
-    ? producto.price * (1 - producto.discountPercent / 100)
-    : producto.price;
-
-  const agregarAlCarrito = () => {
-    if (!usuario) { navigate("/login"); return; }
-    dispatch(agregarItem({ producto, cantidad: 1 }));
-    toast.success(`${producto.name} agregado al carrito`, { toastId: `agregar-${producto.id}` });
-  };
+  const { esAdmin, sinDisponible, precioFinal, enCarrito, agregarAlCarrito } = useProductCard(producto);
 
   return (
     <div style={{ cursor: "pointer" }}>

@@ -1,15 +1,7 @@
-import { soloLetras, soloNumerosYSignos, soloNumeros } from "../../utils/formatters";
+﻿import { soloLetras, soloNumerosYSignos, soloNumeros } from "../../utils/formatters";
+import { formInputStyle as inputStyle, formLabelStyle as labelStyle } from "../../styles/inputStyles";
 import ResumenPedido from "./ResumenPedido";
-
-const inputStyle = {
-  width: "100%", border: "1px solid var(--border)", padding: "10px 14px",
-  fontSize: "14px", fontFamily: "var(--font-sans)", outline: "none", boxSizing: "border-box",
-};
-
-const labelStyle = {
-  fontSize: "12px", letterSpacing: "1px", textTransform: "uppercase",
-  color: "var(--gray)", display: "block", marginBottom: "6px",
-};
+import Boton from "../shared/Boton";
 
 const PasoEnvio = ({ envio, setE, errorEnvio, onContinuar, carrito, subtotal }) => (
   <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: "48px", alignItems: "start" }}>
@@ -54,12 +46,9 @@ const PasoEnvio = ({ envio, setE, errorEnvio, onContinuar, carrito, subtotal }) 
       {errorEnvio && (
         <p style={{ fontSize: "13px", color: "var(--primary)", marginTop: "16px" }}>{errorEnvio}</p>
       )}
-      <button
-        onClick={onContinuar}
-        style={{ marginTop: "16px", background: "var(--primary)", color: "white", border: "none", padding: "14px 40px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: "pointer" }}
-      >
+      <Boton variante="primario" tamaño="lg" onClick={onContinuar} style={{ marginTop: "16px" }}>
         Continuar
-      </button>
+      </Boton>
     </div>
     <ResumenPedido carrito={carrito} subtotal={subtotal} />
   </div>

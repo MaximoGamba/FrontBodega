@@ -1,32 +1,27 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { logout } from "../redux/slices/authSlice";
-import { limpiarCarritoAlLogout } from "../redux/slices/carritoSlice";
-import { fetchUsuario } from "../redux/slices/usuariosSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "@/redux/authSlice";
+import usePerfil from "../hooks/usePerfil";
+import { ROL_ADMIN } from "../utils/roles";
 import DatosPersonales from "../components/profile/DatosPersonales";
-import HistorialPedidos from "../components/user/HistorialPedidos";
+import HistorialPedidos from "../components/profile/HistorialPedidos";
 
 const Perfil = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const usuario = useSelector((state) => state.auth.usuario);
-  const { perfil, loading: cargando } = useSelector((state) => state.usuarios);
-  const esAdmin = usuario?.rol === "admin";
+  const esAdmin = usuario?.rol === ROL_ADMIN;
+  const { perfil, pedidos, cargando, actualizarPerfil } = usePerfil(usuario?.id, esAdmin);
 
   useEffect(() => {
     if (!usuario) { navigate("/login"); return; }
-    if (!usuario.id) { dispatch(limpiarCarritoAlLogout()); dispatch(logout()); navigate("/login"); return; }
-    dispatch(fetchUsuario(usuario.id));
-  }, [dispatch, usuario?.id]);
+    if (!usuario.id) { dispatch(logout()); navigate("/login"); }
+  }, [usuario, dispatch, navigate]);
 
   if (!usuario) return null;
 
-  const handleLogout = () => {
-    dispatch(limpiarCarritoAlLogout());
-    dispatch(logout());
-    navigate("/");
-  };
+  const handleLogout = () => { dispatch(logout()); navigate("/"); };
 
   return (
     <div style={{ margin: "60px 160px" }}>
@@ -42,7 +37,7 @@ const Perfil = () => {
           perfil={perfil}
           cargando={cargando}
           userId={usuario.id}
-          onGuardado={() => {}}
+          onGuardado={actualizarPerfil}
           onLogout={handleLogout}
         />
 
@@ -51,7 +46,7 @@ const Perfil = () => {
             <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "24px", marginBottom: "20px" }}>
               Historial de pedidos
             </h2>
-            <HistorialPedidos />
+            <HistorialPedidos pedidos={pedidos} cargando={cargando} />
           </div>
         )}
       </div>

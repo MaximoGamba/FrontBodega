@@ -1,14 +1,5 @@
-import { Link } from "react-router-dom";
-
-const inputStyle = {
-  width: "100%", border: "1px solid var(--border)", padding: "12px 14px",
-  fontSize: "14px", fontFamily: "var(--font-sans)", outline: "none", boxSizing: "border-box",
-};
-
-const labelStyle = {
-  fontSize: "11px", letterSpacing: "1px", textTransform: "uppercase",
-  color: "var(--gray)", display: "block", marginBottom: "6px",
-};
+﻿import { Link } from "react-router-dom";
+import { inputStyle, labelStyle } from "../../styles/authStyles";
 
 const LoginForm = ({ form, setForm, error, cargando, onSubmit }) => (
   <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
