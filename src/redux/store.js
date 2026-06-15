@@ -1,6 +1,10 @@
-import { configureStore } from "@reduxjs/toolkit";
+import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from "redux-persist";
-import storage from "redux-persist/lib/storage";
+const storage = {
+  getItem:    (key)        => Promise.resolve(window.localStorage.getItem(key)),
+  setItem:    (key, value) => Promise.resolve(window.localStorage.setItem(key, value)),
+  removeItem: (key)        => Promise.resolve(window.localStorage.removeItem(key)),
+};
 import authReducer from "./authSlice";
 import carritoReducer from "./carritoSlice";
 import vinosReducer from "./vinosSlice";
@@ -12,22 +16,29 @@ import catalogoUIReducer from "./catalogoUISlice";
 import adminUIReducer from "./adminUISlice";
 import galeriaReducer from "./galeriaSlice";
 
-const authPersistConfig    = { key: "auth",    storage, whitelist: ["usuario", "token"] };
-const carritoPersistConfig = { key: "carrito", storage, whitelist: ["items"] };
+const rootReducer = combineReducers({
+  auth:       authReducer,
+  carrito:    carritoReducer,
+  vinos:      vinosReducer,
+  catalogos:  catalogosReducer,
+  pedidos:    pedidosReducer,
+  usuario:    usuarioReducer,
+  checkout:   checkoutReducer,
+  catalogoUI: catalogoUIReducer,
+  adminUI:    adminUIReducer,
+  galeria:    galeriaReducer,
+});
+
+const persistConfig = {
+  key:       "root",
+  storage,
+  whitelist: ["auth", "carrito"],
+};
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const store = configureStore({
-  reducer: {
-    auth:       persistReducer(authPersistConfig, authReducer),
-    carrito:    persistReducer(carritoPersistConfig, carritoReducer),
-    vinos:      vinosReducer,
-    catalogos:  catalogosReducer,
-    pedidos:    pedidosReducer,
-    usuario:    usuarioReducer,
-    checkout:   checkoutReducer,
-    catalogoUI: catalogoUIReducer,
-    adminUI:    adminUIReducer,
-    galeria:    galeriaReducer,
-  },
+  reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
