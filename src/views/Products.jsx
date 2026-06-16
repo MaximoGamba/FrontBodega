@@ -1,17 +1,16 @@
-﻿import { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+﻿import { useSearchParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { setOrdenProductos, toggleCheckbox, setPrecioFiltro, limpiarFiltros } from "@/redux/catalogoUISlice";
 import { selectVinosFiltrados } from "@/redux/vinosSlice";
 import useVinos from "../hooks/useVinos";
-import { catalogosUnicos } from "../utils/catalogoUtils";
+import useCatalogos from "../hooks/useCatalogos";
 import FiltrosProductos from "../components/filters/FiltrosProductos";
 import OrdenadorProductos from "../components/products/OrdenadorProductos";
 import GrillaProductos from "../components/products/GrillaProductos";
 
 const Products = () => {
   const dispatch = useDispatch();
-  const { vinos, cargando, error } = useVinos();
+  const { cargando, error } = useVinos();
   const [searchParams] = useSearchParams();
   const busqueda = searchParams.get("q") || "";
 
@@ -19,7 +18,15 @@ const Products = () => {
   const filtros = useSelector((state) => state.catalogoUI.filtros);
   const productosFiltrados = useSelector((state) => selectVinosFiltrados(state, busqueda));
 
-  const catalogos = useMemo(() => catalogosUnicos(vinos), [vinos]);
+  const { catalogos: rawCatalogos } = useCatalogos();
+  const catalogos = rawCatalogos ? {
+    colorId:       rawCatalogos.colores,
+    cepaId:        rawCatalogos.cepas,
+    azucarId:      rawCatalogos.azucares,
+    crianzaId:     rawCatalogos.crianzas,
+    elaboracionId: rawCatalogos.elaboraciones,
+    medidaId:      rawCatalogos.medidas,
+  } : {};
 
   const handleCheckbox = (campo, valor) => dispatch(toggleCheckbox({ campo, valor }));
   const handlePrecio   = (campo, valor) => dispatch(setPrecioFiltro({ campo, valor }));

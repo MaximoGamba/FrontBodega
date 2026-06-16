@@ -20,6 +20,7 @@ const useProductoForm = ({ producto, opciones, onGuardado, onCerrar }) => {
   const [imageUrl, setImageUrl] = useState(producto?.imageUrl || producto?.imagen || "");
   const [isDirty, setIsDirty] = useState(false);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!opciones) return;
     if (esEdicion) {
@@ -37,6 +38,7 @@ const useProductoForm = ({ producto, opciones, onGuardado, onCerrar }) => {
       });
     }
   }, [opciones, esEdicion, producto]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleChange = (campo, valor) => {
     setIsDirty(true);

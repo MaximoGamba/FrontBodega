@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { ROL_ADMIN } from "../utils/roles";
 import useVino from "../hooks/useVino";
@@ -18,8 +18,8 @@ const ProductDetail = () => {
   const esAdmin  = usuario?.rol === ROL_ADMIN;
 
   const [cantidad, setCantidad] = useState(1);
-
-  useEffect(() => { setCantidad(1); }, [id]);
+  const [prevId, setPrevId] = useState(id);
+  if (prevId !== id) { setPrevId(id); setCantidad(1); }
 
   const { vino: producto, cargando } = useVino(id);
   const { vinos } = useVinos();

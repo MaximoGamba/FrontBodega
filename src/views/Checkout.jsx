@@ -14,7 +14,7 @@ const Checkout = () => {
   const dispatch = useDispatch();
   const usuario  = useSelector((state) => state.auth.usuario);
   const carrito  = useSelector((state) => state.carrito.items);
-  const { paso, loading: enviando, error: errorBackend, envio, pago } =
+  const { paso, pedidoId, loading: enviando, error: errorBackend, envio, pago } =
     useSelector((state) => state.checkout);
 
   const [errorEnvio, setErrorEnvio] = useState("");
@@ -93,7 +93,7 @@ const Checkout = () => {
       )}
 
       {paso === 2 && (
-        <PasoConfirmacion nombre={envio.nombre} email={envio.email} />
+        <PasoConfirmacion nombre={envio.nombre} email={envio.email} pedidoId={pedidoId} />
       )}
     </div>
   );

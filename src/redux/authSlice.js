@@ -10,10 +10,8 @@ export const loginThunk = createAsyncThunk(
       return {
         token: data.access_token,
         usuario: {
-          id:      data.user_id,
-          username,
-          nombre:  username,
-          rol:     (data.role || "USER").toLowerCase(),
+          id:  data.user_id,
+          rol: (data.role || "USER").toLowerCase(),
         },
       };
     } catch (err) {
@@ -31,10 +29,8 @@ export const registrarThunk = createAsyncThunk(
       return {
         token: data.access_token,
         usuario: {
-          id:      data.user_id,
-          username,
-          nombre:  firstname,
-          rol:     (data.role || "USER").toLowerCase(),
+          id:  data.user_id,
+          rol: (data.role || "USER").toLowerCase(),
         },
       };
     } catch (err) {

@@ -21,7 +21,7 @@ export const procesarCheckout = createAsyncThunk(
     const carritoItems    = getState().carrito.items;
     const items           = carritoItems.map((i) => ({ wineId: i.id, quantity: i.cantidad }));
     const subtotal        = calcularSubtotal(carritoItems);
-    let pedidoId = null;
+    let pedidoId;
     try {
       const orden = await crearPedido(items);
       if (!orden?.id) throw new Error("No se pudo crear el pedido");
@@ -32,7 +32,7 @@ export const procesarCheckout = createAsyncThunk(
         await crearPago(pedidoId, subtotal, pago.metodo.toUpperCase());
         if (pago.metodo === "tarjeta") await actualizarEstadoPedido(pedidoId, "PAID");
       } catch (err) {
-        try { await actualizarEstadoPedido(pedidoId, "CANCELLED"); } catch {}
+        try { await actualizarEstadoPedido(pedidoId, "CANCELLED"); } catch { /* best-effort */ }
         throw err;
       }
 

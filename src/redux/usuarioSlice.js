@@ -34,25 +34,24 @@ export const getPedidosUsuario = createAsyncThunk(
 const usuarioSlice = createSlice({
   name: "usuario",
   initialState: {
-    datos:                null,
-    statusDatos:          "idle",
-    error:                null,
-    pedidos:              [],
-    statusPedidos:        "idle",
-    errorPedidos:         null,
-    newsletterSuscripto:  false,
-    emailNewsletter:      null,
+    datos:               null,
+    statusDatos:         "idle",
+    statusAt:            null,
+    error:               null,
+    pedidos:             [],
+    statusPedidos:       "idle",
+    errorPedidos:        null,
+    newsletterSuscripto: false,
   },
   reducers: {
-    suscribirNewsletter: (state, action) => {
+    suscribirNewsletter: (state) => {
       state.newsletterSuscripto = true;
-      state.emailNewsletter = action.payload;
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(getUsuario.pending,   (state) => { state.statusDatos = "loading"; state.error = null; })
-      .addCase(getUsuario.fulfilled, (state, action) => { state.statusDatos = "succeeded"; state.datos = action.payload; })
+      .addCase(getUsuario.fulfilled, (state, action) => { state.statusDatos = "succeeded"; state.statusAt = Date.now(); state.datos = action.payload; })
       .addCase(getUsuario.rejected,  (state, action) => { state.statusDatos = "failed"; state.error = action.payload; })
 
       .addCase(putUsuario.fulfilled, (state, action) => {
@@ -71,14 +70,14 @@ const usuarioSlice = createSlice({
       })
 
       .addCase(logout, (state) => {
-        state.datos                = null;
-        state.statusDatos          = "idle";
-        state.error                = null;
-        state.pedidos              = [];
-        state.statusPedidos        = "idle";
-        state.errorPedidos         = null;
-        state.newsletterSuscripto  = false;
-        state.emailNewsletter      = null;
+        state.datos               = null;
+        state.statusDatos         = "idle";
+        state.statusAt            = null;
+        state.error               = null;
+        state.pedidos             = [];
+        state.statusPedidos       = "idle";
+        state.errorPedidos        = null;
+        state.newsletterSuscripto = false;
       });
   },
 });
