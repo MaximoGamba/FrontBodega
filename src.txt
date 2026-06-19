@@ -1,0 +1,219 @@
+src/
+│
+├── main.jsx              → Punto de entrada. Monta Provider Redux, BrowserRouter y ToastContainer
+├── App.jsx               → Define todas las rutas, lazy loading, guards y ErrorBoundaries por ruta
+├── index.css             → Variables CSS globales (colores, fuentes) y keyframes (spin, parpadeo-stock)
+│
+├── assets/               → Archivos estáticos importados directamente en el código
+│   ├── hero.png          → Imagen del hero de la landing
+│   ├── react.svg         → Logo React (generado por Vite, sin uso real)
+│   └── vite.svg          → Logo Vite (generado por Vite, sin uso real)
+│
+├── data/                 → Constantes estáticas de contenido. Evitan hardcodear texto en JSX
+│   ├── contacto.js       → Array INFO_CONTACTO: teléfono, email, horario del footer
+│   ├── historia.js       → Textos, secciones y números de la página Historia
+│   ├── links.js          → Array NAV_LINKS: rutas y etiquetas de navegación. Usado por NavLinks y FooterLinks
+│   └── pago.js           → DATOS_TRANSFERENCIA: CBU, alias y titular para pagos por transferencia
+│
+├── styles/               → Objetos de estilo JS reutilizables entre componentes del mismo dominio
+│   ├── inputStyles.js    → Base de todos los estilos: authInputStyle, formInputStyle, adminInputStyle, profileInputStyle
+│   ├── adminStyles.js    → Re-exporta inputStyle, labelStyle, errorStyle desde inputStyles para el panel admin
+│   ├── authStyles.js     → Re-exporta inputStyle, labelStyle desde inputStyles para login y registro
+│   └── profileStyles.js  → Re-exporta inputStyle, labelStyle desde inputStyles para el perfil de usuario
+│
+├── utils/                → Funciones puras sin estado. No saben nada de Redux ni React
+│   ├── roles.js          → Constante ROL_ADMIN = "admin"
+│   ├── formatters.js     → Máscaras de input (tarjeta, vencimiento), soloNumeros, calcularPrecioFinal, calcularSubtotal
+│   ├── validators.js     → validarEmail, validarVencimiento, validarProducto (formulario admin)
+│   ├── productosSort.js  → ordenarProductos (por precio/fecha, siempre mueve sin stock al final) y sortProductosAdmin (admin)
+│   └── pedidoUtils.js    → Helpers de display para estados de pedido y envío (labels y colores por estado)
+│
+├── redux/                → Todo el estado global de la app (Redux Toolkit)
+│   │
+│   ├── store.js          → Configura el store con los 10 slices. Define qué se persiste en localStorage.
+│   │                        El objeto storage (adapter inline) va declarado después de todos los imports
+│   │                        para respetar las reglas de módulos ES
+│   ├── api.js            → Instancia Axios compartida + injectStore para romper dependencia circular.
+│   │                        Interceptor de request: agrega JWT y verifica expiración con tokenExpirado().
+│   │                        Interceptor de response: desenvuelve .data, maneja 401 con logout automático
+│   │
+│   │   ── Slices de dominio (datos del servidor) ──
+│   ├── authSlice.js      → Sesión: usuario logueado + JWT token. Thunks: login, registro. Persiste en localStorage
+│   ├── vinosSlice.js     → Catálogo de vinos. Dos EntityAdapters: público (clientes) y admin.
+│   │                        7 thunks CRUD. Selector memoizado selectVinosFiltrados (filtros + búsqueda + orden).
+│   │                        TTL con statusAt. loadingMutacion/errorMutacion rastrean pending/rejected de
+│   │                        postVino y putVino. putVino.fulfilled remueve del adapter público si el vino está inactivo
+│   ├── catalogosSlice.js → 6 arrays de opciones: colores, cepas, azúcares, crianzas, elaboraciones, medidas.
+│   │                        Cargados en paralelo con Promise.all. TTL con statusAt
+│   ├── pedidosSlice.js   → Pedidos para el panel admin. EntityAdapter. Escucha logout para limpiar datos. TTL
+│   ├── usuarioSlice.js   → Datos de perfil + historial de pedidos del usuario logueado.
+│   │                        statusDatos ("idle"/"loading"/"succeeded"/"failed") reemplaza al boolean loading.
+│   │                        newsletterSuscripto indica si el usuario ya se suscribió al newsletter.
+│   │                        Todo se limpia en logout (incluido newsletterSuscripto y statusDatos → "idle")
+│   ├── carritoSlice.js   → Items del carrito. Controla stock máximo. Se vacía en logout. Persiste en localStorage
+│   ├── checkoutSlice.js  → Wizard de compra: formularios de envío y pago, paso actual, estado del proceso.
+│   │                        Thunk procesarCheckout: orquesta crearPedido → crearEnvio → crearPago con rollback
+│   ├── galeriaSlice.js   → Estado de upload de imágenes a Cloudinary. Rastrea subiendo: boolean y error: string|null
+│   │
+│   │   ── Slices de UI (estado de pantalla, sin datos del servidor) ──
+│   ├── catalogoUISlice.js → Filtros del catálogo (checkboxes, rango de precio), búsqueda, orden. Constante PRECIO_MAX
+│   └── adminUISlice.js    → Tab activo en admin (productos/órdenes), id del producto en edición, visibilidad del form.
+│                             ordenesExpandidas (array de IDs de pedidos expandidos). toggleOrdenExpandida para FilaOrden
+│
+├── services/             → Capa de acceso a la API. Funciones async puras, sin Redux. Una por microservicio
+│   ├── authService.js    → loginAPI, registrarAPI → microservicio VITE_AUTH_URL
+│   ├── vinosService.js   → fetchVinos, fetchVinosAdmin, fetchVinoById, crearVino, actualizarVino, desactivar/reactivar
+│   │                        + función mapVino (normaliza la respuesta del servidor) → microservicio VITE_VINOS_URL
+│   ├── catalogosService.js → fetchColores, fetchCepas, fetchAzucares, fetchCrianzas, fetchElaboraciones, fetchMedidas
+│   │                         → microservicio VITE_CATALOGOS_URL
+│   ├── pedidosService.js → fetchPedidosAdmin, crearPedido, actualizarEstadoPedido → microservicio VITE_PEDIDOS_URL
+│   ├── enviosService.js  → crearEnvio (asocia dirección a un pedido) → microservicio VITE_PEDIDOS_URL
+│   ├── pagosService.js   → crearPago (asocia monto y método a un pedido) → microservicio VITE_PEDIDOS_URL
+│   ├── usuariosService.js → fetchUsuario, actualizarUsuario, fetchPedidosUsuario → microservicio VITE_USUARIOS_URL
+│   └── cloudinaryService.js → uploadImagen: sube archivo directo a Cloudinary via fetch (sin JWT, API externa)
+│
+├── hooks/                → Mediadores entre Redux y los componentes. Encapsulan "cuándo y cómo pedir datos"
+│   ├── useVinos.js       → Carga el catálogo público. Patrón TTL: refetch automático si los datos tienen +5 min
+│   ├── useVinosAdmin.js  → Igual que useVinos pero para la colección admin (incluye inactivos). TTL 5 min
+│   ├── useVino.js        → Carga un vino por ID. Solo fetcha si no está ya en el adapter (cache local)
+│   ├── useCatalogos.js   → Carga los 6 catálogos. TTL 5 min. useMemo para estabilizar referencia del objeto
+│   │                        y evitar re-renders en cascada en formularios que dependen de las opciones
+│   ├── usePedidosAdmin.js → Carga pedidos del panel admin. TTL 5 min
+│   ├── usePerfil.js      → Carga datos de perfil y pedidos del usuario. Dos efectos separados:
+│   │                        perfil solo si statusDatos === "idle" (evita refetch redundante en cada mount),
+│   │                        pedidos solo si statusPedidos === "idle" y no es admin.
+│   │                        esAdmin se deriva internamente desde state.auth.usuario?.rol (no recibe parámetro).
+│   │                        Retorna cargando: statusDatos === "loading", consistente con todos los demás hooks
+│   ├── useProductCard.js → Combina: precio final con descuento, cantidad en carrito, si hay stock disponible,
+│   │                        y la función de agregar al carrito. Usado por ProductCard
+│   └── useAgregarAlCarrito.js → Verifica si el usuario está logueado antes de agregar. Redirige a /login si no
+│
+├── views/                → Páginas completas. Capa delgada: componen componentes y conectan Redux vía hooks
+│   ├── Home.jsx          → Landing: HeroSection + DestacadosSection + HistoriaBanner + ServiciosSection
+│   ├── Products.jsx      → Catálogo con filtros laterales, buscador y ordenamiento
+│   ├── ProductDetail.jsx → Detalle de un vino: ImagenProducto, info, acciones y productos similares
+│   ├── Cart.jsx          → Carrito de compras con resumen y botón a checkout
+│   ├── Checkout.jsx      → Wizard de 3 pasos: Envío → Pago → Confirmación. Valida cada paso antes de avanzar.
+│   │                        Limpia el estado de checkout al desmontar (resetCheckout en useEffect cleanup)
+│   ├── Sale.jsx          → Catálogo filtrado solo a productos con descuento activo
+│   ├── Historia.jsx      → Página estática con la historia de la bodega (datos de data/historia.js)
+│   ├── Contacto.jsx      → Página estática con info de contacto (datos de data/contacto.js)
+│   ├── Login.jsx         → Formulario de login con manejo de errores del slice
+│   ├── Registro.jsx      → Formulario de registro
+│   ├── Perfil.jsx        → Datos personales + historial de pedidos. Vista diferente para admin (sin historial)
+│   └── Admin.jsx         → Panel admin con dos tabs: Productos (CRUD) y Órdenes (gestión de estados)
+│
+└── components/
+    │
+    ├── AdminRoute.jsx    → Guard de rutas admin: verifica token no expirado + rol === "admin".
+    │                        Despacha logout() si el token expiró para limpiar el estado persistido
+    ├── PrivateRoute.jsx  → Guard de rutas privadas: verifica que haya usuario logueado.
+    │                        Despacha logout() si el token expiró (igual que AdminRoute, evita estado auth stale)
+    │
+    ├── shared/           → Componentes atómicos reutilizables en cualquier parte de la app
+    │   ├── Boton.jsx           → Botón con variantes (primario/secundario) y tamaños (sm/md/lg)
+    │   ├── EstadoCarga.jsx     → Wrapper que muestra spinner, error o el contenido según el estado
+    │   ├── ErrorBoundary.jsx   → Class component de React. Captura errores en el árbol de hijos y
+    │   │                          muestra mensaje de fallback en lugar de romper toda la app
+    │   └── ListaResumenItems.jsx → Lista de items con nombre, precio y cantidad. Usada en
+    │                               ResumenCarrito, ResumenPedido y confirmación de checkout
+    │
+    ├── navbar/
+    │   ├── Navbar.jsx          → Barra de navegación principal, composición de los 5 sub-componentes
+    │   ├── NavLogo.jsx         → Logo "ApiBodega" con link a inicio
+    │   ├── NavLinks.jsx        → Links de navegación desde NAV_LINKS. Muestra "Panel Admin" solo para admins
+    │   ├── NavSearch.jsx       → Barra de búsqueda expandible que despacha setBusqueda al store
+    │   ├── NavAcciones.jsx     → Si hay usuario: ícono perfil + BotonLogout. Si no: solo link "Iniciar sesión".
+    │   │                          (sin duplicado de link a /login)
+    │   ├── CarritoIcono.jsx    → Ícono del carrito con badge que muestra cantidad de items.
+│   │                          Lee totalItems con createSelector desde state.carrito.items
+    │   └── BotonLogout.jsx     → Botón que despacha logout y redirige a inicio
+    │
+    ├── footer/
+    │   ├── Footer.jsx          → Composición del footer en 3 columnas + banda de copyright
+    │   ├── FooterContacto.jsx  → Columna con datos de contacto (desde data/contacto.js)
+    │   ├── FooterLinks.jsx     → Columna con links de navegación (desde data/links.js)
+    │   ├── FooterNewsletter.jsx → Columna con formulario de suscripción. Valida email antes de despachar.
+    │   │                          Despacha suscribirNewsletter() que pone newsletterSuscripto=true en Redux.
+    │   │                          Muestra mensaje persistente "Ya estás suscripto" cuando newsletterSuscripto=true
+    │   └── FooterCopyright.jsx → Banda inferior con año dinámico
+    │
+    ├── home/
+    │   ├── HeroSection.jsx     → Banner principal con imagen hero.png, título y CTA al catálogo
+    │   ├── DestacadosSection.jsx → Grilla de los 3 primeros vinos con descuento activo
+    │   ├── HistoriaBanner.jsx  → Banner con link a la página Historia
+    │   └── ServiciosSection.jsx → Sección de propuesta de valor (envíos, selección, etc.)
+    │
+    ├── product/              → Componentes del detalle de un producto individual
+    │   ├── ProductCard.jsx         → Tarjeta de producto en grilla: imagen, precio, descuento, botón agregar
+    │   ├── ImagenProducto.jsx      → Muestra la imagen principal del producto con badges de descuento y sin stock.
+    │   │                              Componente simple de 4 props: imagenMostrada, discountPercent, stock, nombre
+    │   ├── InfoProducto.jsx        → Ficha técnica: bodega, año, cepa, color, elaboración, etc.
+    │   ├── AccionesProducto.jsx    → Selector de cantidad + botón "Agregar al carrito" del detalle
+    │   └── ProductosSimilares.jsx  → Grilla de otros vinos del mismo color al final del detalle
+    │
+    ├── products/             → Componentes del listado/catálogo de productos
+    │   ├── GrillaProductos.jsx     → Grilla responsive de ProductCards con estados de carga y vacío
+    │   └── OrdenadorProductos.jsx  → Selector de ordenamiento + contador de resultados
+    │
+    ├── filters/              → Panel de filtros del catálogo
+    │   ├── FiltrosProductos.jsx    → Composición del panel lateral: agrupa todos los grupos de filtros
+    │   ├── FiltroCheckbox.jsx      → Grupo de checkboxes para un atributo (color, cepa, etc.)
+    │   └── FiltroRangoPrecio.jsx   → Dos sliders de rango de precio (min/max) con PRECIO_MAX importado
+    │
+    ├── cart/
+    │   ├── CartItem.jsx            → Fila de un item del carrito: imagen, nombre, controles de cantidad, eliminar
+    │   └── ResumenCarrito.jsx      → Panel lateral del carrito con subtotal y link al checkout
+    │
+    ├── checkout/
+    │   ├── IndicadorPasos.jsx      → Barra visual de progreso: Envío / Pago / Confirmación
+    │   ├── PasoEnvio.jsx           → Formulario de datos de envío (nombre, dirección, ciudad, etc.)
+    │   ├── PasoPago.jsx            → Selector tarjeta/transferencia + formulario de tarjeta
+    │   ├── PasoConfirmacion.jsx    → Pantalla de éxito con nombre y email de confirmación
+    │   └── ResumenPedido.jsx       → Panel lateral con lista de items y subtotal durante el checkout
+    │
+    ├── auth/
+    │   ├── LoginForm.jsx           → Formulario de login, muestra error del slice authSlice
+    │   └── RegisterForm.jsx        → Formulario de registro con campos completos
+    │
+    ├── profile/
+    │   ├── DatosPersonales.jsx     → Sección con username, email, campos editables y botón de logout
+    │   ├── CampoEditable.jsx       → Campo con modo lectura/edición inline. Guarda al confirmar via putUsuario
+    │   ├── CambiarPassword.jsx     → Formulario de cambio de contraseña con validación
+    │   └── HistorialPedidos.jsx    → Lista de pedidos del usuario con estado, fecha e items
+    │
+    └── admin/
+        ├── ordenes/
+        │   ├── SeccionOrdenes.jsx      → Composición de la tabla de pedidos admin con filtro por estado
+        │   ├── FilaOrden.jsx           → Fila expandible de un pedido: muestra resumen y despliega detalle
+        │   ├── CambiarEstado.jsx       → Selector de estado del pedido. Despacha putEstadoPedido directamente
+        │   ├── DetalleEnvio.jsx        → Muestra la dirección y estado del envío del pedido
+        │   ├── DetallePago.jsx         → Muestra monto, método y fecha de pago del pedido
+        │   └── DetalleProductos.jsx    → Lista de productos incluidos en el pedido con subtotales
+        │
+        └── productos/
+            ├── SeccionProductos.jsx    → Composición: tabla + formulario de alta/edición
+            ├── TablaProductos.jsx      → Tabla de todos los vinos con paginación y acciones
+            ├── BotonToggle.jsx         → Botón activar/desactivar un producto (soft delete)
+            ├── FormProducto.jsx        → Formulario de creación/edición de producto con galería
+            ├── CamposProducto.jsx      → Campos de formulario: nombre, bodega, año, precio, selects de catálogo
+            ├── useProductoForm.jsx     → Hook del formulario: estado del form, validación, submit,
+            │                             confirmación de descarte de cambios via toast interactivo.
+            │                             guardando refleja state.vinos.loadingMutacion (sin useState local)
+            └── galeria/
+                ├── GaleriaImagenesAdmin.jsx → UI de gestión de imágenes: upload, selección de principal,
+                │                              eliminar, abrir galería de imágenes existentes
+                ├── MiniaturaImagen.jsx      → Miniatura individual con botón de principal y eliminar
+                └── useImagenGaleria.js      → Hook de la galería: gestiona estado local de imágenes
+                                               seleccionadas, imagen principal, y upload a Cloudinary via Redux
+
+
+─────────────────────────────────────────────────────────────────
+Cómo leer el diagrama:
+
+  redux/     es el corazón del estado. Todo fluye desde ahí.
+  services/  es la única capa que habla con el backend. Nada más lo hace directamente.
+  hooks/     son el puente: los componentes no tocan Redux directamente para pedir datos.
+  views/     son páginas completas pero delgadas: solo componen componentes y usan hooks.
+  components/ son las piezas visuales. Reciben props, no saben de dónde vienen los datos.
+  utils/ y data/ son utilidades puras: no dependen de React ni Redux.

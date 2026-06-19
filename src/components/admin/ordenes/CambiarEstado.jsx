@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { putEstadoPedido } from "@/redux/pedidosSlice";
 import { inputStyle, labelStyle } from "../../../styles/adminStyles";
@@ -8,14 +8,12 @@ import Boton from "../../shared/Boton";
 
 const CambiarEstado = ({ pedidoId, estadoActual }) => {
   const dispatch = useDispatch();
-  const [guardando, setGuardando] = useState(false);
+  const guardando = useSelector((state) => state.pedidos.admin.loadingMutacion);
   const [nuevoEstado, setNuevoEstado] = useState(estadoActual);
 
   const guardarEstado = async () => {
     if (nuevoEstado === estadoActual) return;
-    setGuardando(true);
     const result = await dispatch(putEstadoPedido({ id: pedidoId, status: nuevoEstado }));
-    setGuardando(false);
     if (!putEstadoPedido.fulfilled.match(result)) {
       toast.error("Error al actualizar el estado.");
     }

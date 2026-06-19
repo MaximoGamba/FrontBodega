@@ -5,7 +5,7 @@ import { NAV_LINKS } from "@/data/links";
 
 const NavLinks = () => {
   const { pathname } = useLocation();
-  const usuario = useSelector((state) => state.auth.usuario);
+  const usuario = useSelector((state) => state.users.usuario);
   const esAdmin = usuario?.rol === ROL_ADMIN;
 
   const linkStyle = (to) => ({

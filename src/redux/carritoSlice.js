@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { logout } from "./authSlice";
+import { logout } from "./usersSlice";
 
 const carritoSlice = createSlice({
   name: "carrito",

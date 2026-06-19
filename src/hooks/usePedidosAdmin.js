@@ -7,9 +7,9 @@ const PEDIDOS_TTL = 5 * 60 * 1000;
 const usePedidosAdmin = () => {
   const dispatch  = useDispatch();
   const pedidos   = useSelector(selectAllPedidos);
-  const status    = useSelector((state) => state.pedidos.status);
-  const statusAt  = useSelector((state) => state.pedidos.statusAt);
-  const error     = useSelector((state) => state.pedidos.error);
+  const status    = useSelector((state) => state.pedidos.admin.status);
+  const statusAt  = useSelector((state) => state.pedidos.admin.statusAt);
+  const error     = useSelector((state) => state.pedidos.admin.error);
 
   useEffect(() => {
     if (status === "idle") { dispatch(getPedidosAdmin()); return; }

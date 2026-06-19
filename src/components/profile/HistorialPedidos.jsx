@@ -1,8 +1,12 @@
 import { ORDEN_ESTADO_LABEL, ORDEN_ESTADO_COLOR } from "../../utils/pedidoUtils";
 
-const HistorialPedidos = ({ pedidos, cargando }) => {
+const HistorialPedidos = ({ pedidos, cargando, error }) => {
   if (cargando) {
     return <p style={{ color: "var(--gray)", fontSize: "14px" }}>Cargando pedidos...</p>;
+  }
+
+  if (error) {
+    return <p style={{ color: "var(--gray)", fontSize: "14px" }}>No se pudieron cargar tus pedidos. Probá de nuevo más tarde.</p>;
   }
 
   if (pedidos.length === 0) {

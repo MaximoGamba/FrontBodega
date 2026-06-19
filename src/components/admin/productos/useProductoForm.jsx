@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { postVino, putVino } from "@/redux/vinosSlice";
 import { validarProducto } from "@/utils/validators";
@@ -14,13 +14,12 @@ const useProductoForm = ({ producto, opciones, onGuardado, onCerrar }) => {
   const dispatch = useDispatch();
   const esEdicion = Boolean(producto);
 
+  const guardando = useSelector((state) => state.vinos.loadingMutacion);
   const [form, setForm] = useState(null);
   const [errores, setErrores] = useState({});
-  const [guardando, setGuardando] = useState(false);
   const [imageUrl, setImageUrl] = useState(producto?.imageUrl || producto?.imagen || "");
   const [isDirty, setIsDirty] = useState(false);
 
-  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!opciones) return;
     if (esEdicion) {
@@ -38,7 +37,6 @@ const useProductoForm = ({ producto, opciones, onGuardado, onCerrar }) => {
       });
     }
   }, [opciones, esEdicion, producto]);
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleChange = (campo, valor) => {
     setIsDirty(true);
@@ -86,7 +84,7 @@ const useProductoForm = ({ producto, opciones, onGuardado, onCerrar }) => {
     const datos = {
       name: form.name,
       winery: form.winery,
-      year: form.year !== "" && form.year != null ? Number(form.year) : null,
+      year: form.year !== "" && form.year !== null ? Number(form.year) : null,
       price: Number(form.price),
       stock: Number(form.stock),
       discountPercent: Number(form.discountPercent),
@@ -99,7 +97,6 @@ const useProductoForm = ({ producto, opciones, onGuardado, onCerrar }) => {
       imageUrl: imageUrl || null,
     };
 
-    setGuardando(true);
     try {
       if (esEdicion) {
         const result = await dispatch(putVino({ id: producto.id, datos }));
@@ -108,11 +105,10 @@ const useProductoForm = ({ producto, opciones, onGuardado, onCerrar }) => {
         const result = await dispatch(postVino(datos));
         if (postVino.rejected.match(result)) throw new Error(result.payload);
       }
+      toast.success(esEdicion ? "Producto actualizado." : "Producto creado.");
       onGuardado();
     } catch {
       toast.error(esEdicion ? "Error al actualizar el producto." : "Error al crear el producto.");
-    } finally {
-      setGuardando(false);
     }
   };
 

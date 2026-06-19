@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { procesarCheckout, setPaso, setEnvioField, setPagoField, resetCheckout } from "@/redux/checkoutSlice";
+import { procesarCheckout } from "@/redux/pedidosSlice";
+import { setPaso, setEnvioField, setPagoField, resetCheckout } from "@/redux/checkoutSlice";
 import { validarEmail, validarVencimiento } from "../utils/validators";
 import { ROL_ADMIN } from "../utils/roles";
 import { soloNumeros, calcularSubtotal } from "../utils/formatters";
@@ -12,10 +13,10 @@ import PasoConfirmacion from "../components/checkout/PasoConfirmacion";
 
 const Checkout = () => {
   const dispatch = useDispatch();
-  const usuario  = useSelector((state) => state.auth.usuario);
+  const usuario  = useSelector((state) => state.users.usuario);
   const carrito  = useSelector((state) => state.carrito.items);
-  const { paso, pedidoId, loading: enviando, error: errorBackend, envio, pago } =
-    useSelector((state) => state.checkout);
+  const { paso, pedidoId, envio, pago }           = useSelector((state) => state.checkout);
+  const { loading: enviando, error: errorBackend } = useSelector((state) => state.pedidos.creacion);
 
   const [errorEnvio, setErrorEnvio] = useState("");
   const [errorPago,  setErrorPago]  = useState("");

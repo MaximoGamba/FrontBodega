@@ -1,5 +1,5 @@
 import { toast } from "react-toastify";
-import { estaActivo } from "../../../services/vinosService";
+import { estaActivo } from "../../../utils/productosSort";
 
 const BotonToggle = ({ producto, onActualizado }) => {
   const activo = estaActivo(producto);

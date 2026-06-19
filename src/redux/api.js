@@ -1,5 +1,5 @@
 import axios from "axios";
-import { logout } from "./authSlice";
+import { logout } from "./usersSlice";
 
 export const tokenExpirado = (token) => {
   try {
@@ -17,7 +17,7 @@ export const injectStore = (store) => { _store = store; };
 const api = axios.create();
 
 api.interceptors.request.use((config) => {
-  const { token } = _store.getState().auth;
+  const { token } = _store.getState().users;
   if (token) {
     if (tokenExpirado(token)) {
       _store.dispatch(logout());

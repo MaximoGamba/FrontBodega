@@ -1,61 +1,143 @@
 import { createSlice, createAsyncThunk, createEntityAdapter } from "@reduxjs/toolkit";
-import { fetchPedidosAdmin, actualizarEstadoPedido } from "../services/pedidosService";
-import { logout } from "./authSlice";
+import { fetchPedidosAdmin, crearPedido, actualizarEstadoPedido } from "../services/pedidosService";
+import { fetchPedidosUsuario } from "../services/usuariosService";
+import { crearEnvio } from "../services/enviosService";
+import { crearPago } from "../services/pagosService";
+import { calcularSubtotal } from "../utils/formatters";
+import { vaciarCarrito } from "./carritoSlice";
+import { logout } from "./usersSlice";
 
-// ─── Adapter (pedidos admin) ─────────────────────────────────────────────────
+// ─── Adapter (vista admin) ────────────────────────────────────────────────────
 const pedidosAdapter = createEntityAdapter();
 
 export const { selectAll: selectAllPedidos, selectById: selectPedidoById } =
-  pedidosAdapter.getSelectors((state) => state.pedidos);
+  pedidosAdapter.getSelectors((state) => state.pedidos.admin);
 
-// ─── Thunks ──────────────────────────────────────────────────────────────────
+// ─── Thunks admin ─────────────────────────────────────────────────────────────
 export const getPedidosAdmin = createAsyncThunk(
   "pedidos/getAdmin",
-  async (_, { rejectWithValue }) => {
-    try {
-      const data = await fetchPedidosAdmin();
-      return Array.isArray(data) ? [...data].reverse() : [];
-    } catch (err) {
-      return rejectWithValue(err.message);
-    }
-  }
+  (_, { rejectWithValue }) =>
+    fetchPedidosAdmin()
+      .then((data) => Array.isArray(data) ? [...data].reverse() : [])
+      .catch((err) => rejectWithValue(err.message))
 );
 
 export const putEstadoPedido = createAsyncThunk(
   "pedidos/putEstado",
-  async ({ id, status }, { rejectWithValue }) => {
+  ({ id, status }, { rejectWithValue }) =>
+    actualizarEstadoPedido(id, status)
+      .then(() => ({ id, status }))
+      .catch((err) => rejectWithValue(err.message))
+);
+
+// ─── Thunk propios (vista usuario) ────────────────────────────────────────────
+export const getPedidosUsuario = createAsyncThunk(
+  "pedidos/getPropios",
+  (userId, { rejectWithValue }) =>
+    fetchPedidosUsuario(userId)
+      .then((data) => Array.isArray(data) ? [...data].reverse() : [])
+      .catch((err) => rejectWithValue(err.message))
+);
+
+// ─── Thunk creación (checkout) ────────────────────────────────────────────────
+export const procesarCheckout = createAsyncThunk(
+  "pedidos/procesar",
+  async (_, { getState, dispatch, rejectWithValue }) => {
+    const { envio, pago } = getState().checkout;
+    const carritoItems    = getState().carrito.items;
+    const items           = carritoItems.map((i) => ({ wineId: i.id, quantity: i.cantidad }));
+    const subtotal        = calcularSubtotal(carritoItems);
+
+    // Fase 1: crear pedido
+    let pedidoId;
     try {
-      await actualizarEstadoPedido(id, status);
-      return { id, status };
+      const orden = await crearPedido(items);
+      if (!orden?.id) return rejectWithValue("No se pudo crear el pedido");
+      pedidoId = orden.id;
     } catch (err) {
-      return rejectWithValue(err.message);
+      return rejectWithValue(err.message ?? "Error al procesar el pedido");
     }
+
+    // Fase 2: envío + pago (con cancelación best-effort si fallan)
+    try {
+      await crearEnvio(pedidoId, `${envio.direccion}, ${envio.ciudad}, ${envio.provincia}`);
+      await crearPago(pedidoId, subtotal, pago.metodo.toUpperCase());
+      if (pago.metodo === "tarjeta") await actualizarEstadoPedido(pedidoId, "PAID");
+    } catch (err) {
+      await actualizarEstadoPedido(pedidoId, "CANCELLED").catch(() => {});
+      return rejectWithValue(err.message ?? "Error al procesar el pedido");
+    }
+
+    dispatch(vaciarCarrito());
+    return pedidoId;
   }
 );
 
-// ─── Slice ───────────────────────────────────────────────────────────────────
+// ─── Slice ────────────────────────────────────────────────────────────────────
 const pedidosSlice = createSlice({
   name: "pedidos",
-  initialState: pedidosAdapter.getInitialState({ status: "idle", error: null, statusAt: null }),
+  initialState: {
+    admin: pedidosAdapter.getInitialState({
+      status:          "idle",
+      error:           null,
+      statusAt:        null,
+      loadingMutacion: false,
+      errorMutacion:   null,
+    }),
+    propios: {
+      items:  [],
+      status: "idle",
+      error:  null,
+    },
+    creacion: {
+      loading: false,
+      error:   null,
+    },
+  },
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(getPedidosAdmin.pending,   (state) => { state.status = "loading"; state.error = null; })
+      // ── admin ──────────────────────────────────────────────────────────────
+      .addCase(getPedidosAdmin.pending,   (state) => { state.admin.status = "loading"; state.admin.error = null; })
       .addCase(getPedidosAdmin.fulfilled, (state, action) => {
-        state.status   = "succeeded";
-        state.statusAt = Date.now();
-        pedidosAdapter.setAll(state, action.payload);
+        state.admin.status   = "succeeded";
+        state.admin.statusAt = Date.now();
+        pedidosAdapter.setAll(state.admin, action.payload);
       })
-      .addCase(getPedidosAdmin.rejected,  (state, action) => { state.status = "failed"; state.error = action.payload; })
+      .addCase(getPedidosAdmin.rejected,  (state, action) => { state.admin.status = "failed"; state.admin.error = action.payload; })
 
+      .addCase(putEstadoPedido.pending,   (state) => { state.admin.loadingMutacion = true;  state.admin.errorMutacion = null; })
       .addCase(putEstadoPedido.fulfilled, (state, action) => {
-        pedidosAdapter.updateOne(state, { id: action.payload.id, changes: { status: action.payload.status } });
+        state.admin.loadingMutacion = false;
+        pedidosAdapter.updateOne(state.admin, { id: action.payload.id, changes: { status: action.payload.status } });
       })
+      .addCase(putEstadoPedido.rejected,  (state, action) => { state.admin.loadingMutacion = false; state.admin.errorMutacion = action.payload; })
 
+      // ── propios ────────────────────────────────────────────────────────────
+      .addCase(getPedidosUsuario.pending,   (state) => { state.propios.status = "loading"; state.propios.error = null; })
+      .addCase(getPedidosUsuario.fulfilled, (state, action) => { state.propios.status = "succeeded"; state.propios.items = action.payload; })
+      .addCase(getPedidosUsuario.rejected,  (state, action) => { state.propios.status = "failed"; state.propios.error = action.payload ?? "Error al cargar pedidos"; })
+
+      // ── creacion ───────────────────────────────────────────────────────────
+      .addCase(procesarCheckout.pending,   (state) => { state.creacion.loading = true;  state.creacion.error = null; })
+      .addCase(procesarCheckout.fulfilled, (state) => {
+        state.creacion.loading = false;
+        state.propios.status   = "idle"; // invalidar para que se refetchee el historial
+      })
+      .addCase(procesarCheckout.rejected,  (state, action) => { state.creacion.loading = false; state.creacion.error = action.payload ?? "Error al procesar el pedido"; })
+
+      // ── logout ─────────────────────────────────────────────────────────────
       .addCase(logout, (state) => {
-        pedidosAdapter.removeAll(state);
-        state.status = "idle";
-        state.error  = null;
+        pedidosAdapter.removeAll(state.admin);
+        state.admin.status          = "idle";
+        state.admin.error           = null;
+        state.admin.loadingMutacion = false;
+        state.admin.errorMutacion   = null;
+        state.propios.items         = [];
+        state.propios.status        = "idle";
+        state.propios.error         = null;
+        state.creacion.loading      = false;
+        state.creacion.error        = null;
       });
   },
 });

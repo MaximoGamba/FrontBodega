@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "@/redux/authSlice";
+import { logout } from "@/redux/usersSlice";
 import { tokenExpirado } from "@/redux/api";
 
 const PrivateRoute = ({ children }) => {
   const dispatch = useDispatch();
-  const usuario  = useSelector((state) => state.auth.usuario);
-  const token    = useSelector((state) => state.auth.token);
+  const usuario  = useSelector((state) => state.users.usuario);
+  const token    = useSelector((state) => state.users.token);
   const expirado = tokenExpirado(token);
 
   useEffect(() => {

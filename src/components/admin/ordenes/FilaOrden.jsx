@@ -1,4 +1,5 @@
-﻿import { useState } from "react";
+﻿import { useDispatch, useSelector } from "react-redux";
+import { toggleOrdenExpandida } from "@/redux/adminUISlice";
 import { ORDEN_ESTADO_LABEL, ORDEN_ESTADO_COLOR } from "../../../utils/pedidoUtils";
 import DetalleProductos from "./DetalleProductos";
 import DetalleEnvio from "./DetalleEnvio";
@@ -6,7 +7,8 @@ import DetallePago from "./DetallePago";
 import CambiarEstado from "./CambiarEstado";
 
 const FilaOrden = ({ pedido }) => {
-  const [expandida, setExpandida] = useState(false);
+  const dispatch  = useDispatch();
+  const expandida = useSelector((state) => state.adminUI.ordenesExpandidas.includes(pedido.id));
 
   const colores = ORDEN_ESTADO_COLOR[pedido.status] || { bg: "#f5f5f5", text: "var(--gray)" };
   const fecha = pedido.createdAt
@@ -17,7 +19,7 @@ const FilaOrden = ({ pedido }) => {
     <>
       <tr
         style={{ borderBottom: expandida ? "none" : "1px solid var(--border)", cursor: "pointer" }}
-        onClick={() => setExpandida((v) => !v)}
+        onClick={() => dispatch(toggleOrdenExpandida(pedido.id))}
       >
         <td style={{ padding: "14px 12px", fontSize: "13px", fontWeight: "600" }}>#{pedido.id}</td>
         <td style={{ padding: "14px 12px", fontSize: "13px" }}>

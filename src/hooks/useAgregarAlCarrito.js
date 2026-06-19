@@ -6,7 +6,7 @@ import { agregarItem } from "@/redux/carritoSlice";
 const useAgregarAlCarrito = (producto, cantidad = 1) => {
   const dispatch = useDispatch();
   // Selector granular: solo necesitamos saber si hay usuario, no todos sus datos
-  const estaLogueado = useSelector((state) => state.auth.usuario !== null);
+  const estaLogueado = useSelector((state) => state.users.usuario !== null);
   const navigate = useNavigate();
 
   const agregar = () => {

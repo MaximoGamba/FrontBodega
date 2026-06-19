@@ -1,13 +1,13 @@
 import { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "@/redux/authSlice";
+import { logout } from "@/redux/usersSlice";
 import { tokenExpirado } from "@/redux/api";
 import { ROL_ADMIN } from "@/utils/roles";
 
 const AdminRoute = ({ children }) => {
   const dispatch = useDispatch();
-  const { usuario, token } = useSelector((state) => state.auth);
+  const { usuario, token } = useSelector((state) => state.users);
   const expirado = tokenExpirado(token);
 
   useEffect(() => {

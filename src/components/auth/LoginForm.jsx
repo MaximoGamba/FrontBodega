@@ -1,5 +1,6 @@
 ﻿import { Link } from "react-router-dom";
 import { inputStyle, labelStyle } from "../../styles/authStyles";
+import Boton from "../shared/Boton";
 
 const LoginForm = ({ form, setForm, error, cargando, onSubmit }) => (
   <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "40px 24px" }}>
@@ -35,13 +36,9 @@ const LoginForm = ({ form, setForm, error, cargando, onSubmit }) => (
 
         {error && <p style={{ fontSize: "13px", color: "var(--primary)", margin: "0" }}>{error}</p>}
 
-        <button
-          type="submit"
-          disabled={cargando}
-          style={{ background: "var(--primary)", color: "white", border: "none", padding: "14px", fontSize: "12px", letterSpacing: "1.5px", textTransform: "uppercase", cursor: cargando ? "not-allowed" : "pointer", opacity: cargando ? 0.7 : 1, marginTop: "4px" }}
-        >
+        <Boton type="submit" variante="primario" tamaño="lg" disabled={cargando} style={{ marginTop: "4px", width: "100%" }}>
           {cargando ? "Ingresando..." : "Ingresar"}
-        </button>
+        </Boton>
       </form>
 
       <p style={{ textAlign: "center", fontSize: "13px", color: "var(--gray)", marginTop: "24px" }}>

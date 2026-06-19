@@ -1,22 +1,20 @@
 ﻿import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { putUsuario } from "@/redux/usuarioSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { putUsuario } from "@/redux/usersSlice";
 import { inputStyle, labelStyle } from "../../styles/profileStyles";
 import Boton from "../shared/Boton";
 
 const CampoEditable = ({ label, valor, campo, userId }) => {
   const dispatch = useDispatch();
+  const guardando = useSelector((state) => state.users.loadingMutacion);
   const [editando, setEditando] = useState(false);
   const [input, setInput] = useState(valor || "");
-  const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
 
   const guardar = async () => {
     if (!input.trim()) return;
-    setGuardando(true);
     setError("");
     const result = await dispatch(putUsuario({ userId, datos: { [campo]: input.trim() } }));
-    setGuardando(false);
     if (putUsuario.fulfilled.match(result)) {
       setEditando(false);
     } else {

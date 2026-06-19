@@ -2,10 +2,8 @@ import api from "@/redux/api";
 
 const BASE = import.meta.env.VITE_VINOS_URL;
 
-export const VINOS_PAGE_SIZE       = 100;
-export const VINOS_ADMIN_PAGE_SIZE = 1000;
-
-export const estaActivo = (producto) => producto.active !== false;
+const VINOS_PAGE_SIZE       = 100;
+const VINOS_ADMIN_PAGE_SIZE = 1000;
 
 export const mapVino = (v) => ({
   id:                  v.id,
@@ -14,7 +12,7 @@ export const mapVino = (v) => ({
   year:                v.year,
   price:               Number(v.price),
   stock:               v.stock,
-  discountPercent:     Number(v.discountPercent || 0),
+  discountPercent:     Number(v.discountPercent ?? 0),
   active:              v.active,
   imagen:              v.imageUrl || "",
   colorId:             v.color?.id,

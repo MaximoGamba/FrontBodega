@@ -3,7 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { setOrdenSale } from "@/redux/catalogoUISlice";
 import useVinos from "../hooks/useVinos";
 import { ordenarProductos } from "../utils/productosSort";
-import { estaActivo } from "../services/vinosService";
 import ProductCard from "../components/product/ProductCard";
 import EstadoCarga from "../components/shared/EstadoCarga";
 
@@ -12,7 +11,7 @@ const Sale = () => {
   const { vinos, cargando, error } = useVinos();
   const orden = useSelector((state) => state.catalogoUI.ordenSale);
 
-  const enOferta = useMemo(() => vinos.filter((p) => p.discountPercent > 0 && estaActivo(p)), [vinos]);
+  const enOferta = useMemo(() => vinos.filter((p) => p.discountPercent > 0), [vinos]);
   const ordenados = useMemo(() => ordenarProductos(enOferta, orden), [enOferta, orden]);
 
   return (

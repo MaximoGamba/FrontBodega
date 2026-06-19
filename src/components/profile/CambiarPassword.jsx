@@ -1,30 +1,33 @@
-﻿import { useState } from "react";
-import { useDispatch } from "react-redux";
-import { putUsuario } from "@/redux/usuarioSlice";
+﻿import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { putUsuario } from "@/redux/usersSlice";
 import { inputStyle, labelStyle } from "../../styles/profileStyles";
 import Boton from "../shared/Boton";
 
 const CambiarPassword = ({ userId }) => {
   const dispatch = useDispatch();
+  const guardando = useSelector((state) => state.users.loadingMutacion);
   const [abierto, setAbierto] = useState(false);
   const [form, setForm] = useState({ actual: "", nueva: "", confirmar: "" });
-  const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState("");
   const [exito, setExito] = useState(false);
+
+  useEffect(() => {
+    if (!exito) return;
+    const id = setTimeout(() => { setExito(false); setAbierto(false); }, 2000);
+    return () => clearTimeout(id);
+  }, [exito]);
 
   const guardar = async () => {
     if (!form.actual) { setError("Ingresá tu contraseña actual."); return; }
     if (!form.nueva || !form.confirmar) { setError("Completá todos los campos."); return; }
     if (form.nueva !== form.confirmar) { setError("Las contraseñas nuevas no coinciden."); return; }
     if (form.nueva.length < 6) { setError("La contraseña nueva debe tener al menos 6 caracteres."); return; }
-    setGuardando(true);
     setError("");
     const result = await dispatch(putUsuario({ userId, datos: { currentPassword: form.actual, password: form.nueva } }));
-    setGuardando(false);
     if (putUsuario.fulfilled.match(result)) {
       setExito(true);
       setForm({ actual: "", nueva: "", confirmar: "" });
-      setTimeout(() => { setExito(false); setAbierto(false); }, 2000);
     } else {
       const msg = result.payload || "";
       if (msg.toLowerCase().includes("incorrecta") || msg.toLowerCase().includes("actual")) {

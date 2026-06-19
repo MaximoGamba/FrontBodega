@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { HISTORIA_FUNDACION } from "../../data/historia";
 
+const AÑOS_EXPERIENCIA = new Date().getFullYear() - Number(HISTORIA_FUNDACION);
+
 const HistoriaBanner = () => (
   <section style={{ background: "var(--neutral)", padding: "80px 40px", textAlign: "center" }}>
     <p style={{ fontSize: "11px", letterSpacing: "3px", textTransform: "uppercase", color: "var(--secondary)", marginBottom: "20px", opacity: 0.7 }}>
@@ -10,7 +12,7 @@ const HistoriaBanner = () => (
       Tradición y pasión en cada botella
     </h2>
     <p style={{ fontSize: "15px", color: "var(--secondary)", opacity: 0.7, maxWidth: "480px", margin: "0 auto 40px", lineHeight: "1.7" }}>
-      Más de 30 años seleccionando los mejores vinos de Mendoza, San Juan y La Rioja para llevarte lo mejor de la vitivinicultura argentina.
+      Más de {AÑOS_EXPERIENCIA} años seleccionando los mejores vinos de Mendoza, San Juan y La Rioja para llevarte lo mejor de la vitivinicultura argentina.
     </p>
     <Link
       to="/historia"

@@ -1,12 +1,12 @@
 import { useParams, Link } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { ROL_ADMIN } from "../utils/roles";
 import useVino from "../hooks/useVino";
 import useVinos from "../hooks/useVinos";
 import { calcularPrecioFinal } from "../utils/formatters";
 import useAgregarAlCarrito from "../hooks/useAgregarAlCarrito";
-import GaleriaProducto from "../components/product/GaleriaProducto";
+import ImagenProducto from "../components/product/ImagenProducto";
 import InfoProducto from "../components/product/InfoProducto";
 import AccionesProducto from "../components/product/AccionesProducto";
 import ProductosSimilares from "../components/product/ProductosSimilares";
@@ -14,14 +14,12 @@ import EstadoCarga from "../components/shared/EstadoCarga";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const usuario  = useSelector((state) => state.auth.usuario);
-  const esAdmin  = usuario?.rol === ROL_ADMIN;
+  const esAdmin = useSelector((state) => state.users.usuario?.rol === ROL_ADMIN);
 
   const [cantidad, setCantidad] = useState(1);
-  const [prevId, setPrevId] = useState(id);
-  if (prevId !== id) { setPrevId(id); setCantidad(1); }
+  useEffect(() => { setCantidad(1); }, [id]);
 
-  const { vino: producto, cargando } = useVino(id);
+  const { vino: producto, cargando, error } = useVino(id);
   const { vinos } = useVinos();
 
   const agregarAlCarrito = useAgregarAlCarrito(producto, cantidad);
@@ -34,7 +32,7 @@ const ProductDetail = () => {
   }, [producto, vinos]);
 
   return (
-    <EstadoCarga cargando={cargando} error={null}>
+    <EstadoCarga cargando={cargando} error={error}>
       {!producto ? (
         <div style={{ textAlign: "center", padding: "80px 24px" }}>
           <p style={{ fontFamily: "var(--font-serif)", fontSize: "24px", marginBottom: "16px" }}>
@@ -53,7 +51,7 @@ const ProductDetail = () => {
           </p>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "64px", alignItems: "start" }}>
-            <GaleriaProducto
+            <ImagenProducto
               imagenMostrada={producto.imagen}
               discountPercent={producto.discountPercent}
               stock={producto.stock}

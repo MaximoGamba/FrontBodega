@@ -16,7 +16,7 @@ createRoot(document.getElementById("root")).render(
     <PersistGate loading={null} persistor={persistor}>
       <BrowserRouter>
         <App />
-        <ToastContainer position="top-center" autoClose={4500} hideProgressBar={false} closeOnClick pauseOnHover style={{ fontSize: "1.2rem", width: "460px" }} />
+        <ToastContainer position="top-center" autoClose={4500} hideProgressBar={false} closeOnClick pauseOnHover />
       </BrowserRouter>
     </PersistGate>
   </Provider>

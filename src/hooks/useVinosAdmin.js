@@ -1,7 +1,7 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getVinosAdmin, desactivarVino, reactivarVino, selectAllVinosAdmin } from "@/redux/vinosSlice";
-import { sortProductos } from "../utils/productosSort";
+import { sortProductosAdmin } from "../utils/productosSort";
 
 const VINOS_ADMIN_TTL = 5 * 60 * 1000;
 
@@ -19,12 +19,11 @@ const useVinosAdmin = () => {
     }
   }, [dispatch, statusAdmin, statusAt]);
 
-  const productos = useMemo(() => sortProductos(itemsAdmin), [itemsAdmin]);
+  const productos = useMemo(() => sortProductosAdmin(itemsAdmin), [itemsAdmin]);
 
-  const actualizarActivo = (id, nuevoActivo) => {
-    if (nuevoActivo) dispatch(reactivarVino(id));
-    else dispatch(desactivarVino(id));
-  };
+  const actualizarActivo = useCallback((id, nuevoActivo) => {
+    dispatch(nuevoActivo ? reactivarVino(id) : desactivarVino(id));
+  }, [dispatch]);
 
   return { productos, cargando: statusAdmin === "loading", error, actualizarActivo };
 };

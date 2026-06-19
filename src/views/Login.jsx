@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { loginThunk, limpiarError } from "@/redux/authSlice";
+import { loginThunk, limpiarError } from "@/redux/usersSlice";
 import { ROL_ADMIN } from "@/utils/roles";
 import LoginForm from "../components/auth/LoginForm";
 
@@ -10,7 +10,7 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from || "/";
-  const { loading, error: authError } = useSelector((state) => state.auth);
+  const { loadingAuth: loading, errorAuth: authError } = useSelector((state) => state.users);
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
 

@@ -1,7 +1,7 @@
 ﻿import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "@/redux/authSlice";
+import { logout } from "@/redux/usersSlice";
 import usePerfil from "../hooks/usePerfil";
 import { ROL_ADMIN } from "../utils/roles";
 import DatosPersonales from "../components/profile/DatosPersonales";
@@ -10,9 +10,9 @@ import HistorialPedidos from "../components/profile/HistorialPedidos";
 const Perfil = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const usuario = useSelector((state) => state.auth.usuario);
+  const usuario = useSelector((state) => state.users.usuario);
   const esAdmin = usuario?.rol === ROL_ADMIN;
-  const { perfil, pedidos, cargando } = usePerfil(usuario?.id, esAdmin);
+  const { perfil, pedidos, cargando, cargandoPedidos, errorPedidos } = usePerfil(usuario?.id);
 
   useEffect(() => {
     if (usuario && !usuario.id) { dispatch(logout()); navigate("/login"); }
@@ -44,7 +44,7 @@ const Perfil = () => {
             <h2 style={{ fontFamily: "var(--font-serif)", fontSize: "24px", marginBottom: "20px" }}>
               Historial de pedidos
             </h2>
-            <HistorialPedidos pedidos={pedidos} cargando={cargando} />
+            <HistorialPedidos pedidos={pedidos} cargando={cargandoPedidos} error={errorPedidos} />
           </div>
         )}
       </div>

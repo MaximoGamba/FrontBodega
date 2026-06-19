@@ -5,7 +5,7 @@ import useAgregarAlCarrito from "./useAgregarAlCarrito";
 
 const useProductCard = (producto) => {
   // Selectores granulares: evitan re-renders por campos irrelevantes del store
-  const esAdmin = useSelector((state) => state.auth.usuario?.rol === ROL_ADMIN);
+  const esAdmin = useSelector((state) => state.users.usuario?.rol === ROL_ADMIN);
   const enCarrito = useSelector(
     (state) => state.carrito.items.find((i) => i.id === producto.id)?.cantidad ?? 0
   );

@@ -16,7 +16,7 @@ const SeccionProductos = () => {
   const editando           = useSelector((state) => selectVinoAdminById(state, productoEditandoId));
 
   useEffect(() => {
-    if (errorOpciones) toast.error("No se pudieron cargar las opciones del formulario.");
+    if (errorOpciones) toast.error("No se pudieron cargar las opciones del formulario.", { toastId: "error-catalogos" });
   }, [errorOpciones]);
 
   return (

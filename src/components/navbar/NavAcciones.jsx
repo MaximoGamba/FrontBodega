@@ -6,15 +6,12 @@ import CarritoIcono from "./CarritoIcono";
 import BotonLogout from "./BotonLogout";
 
 const NavAcciones = () => {
-  const usuario = useSelector((state) => state.auth.usuario);
+  const usuario = useSelector((state) => state.users.usuario);
   const esAdmin = usuario?.rol === ROL_ADMIN;
-  const totalItems = useSelector((state) =>
-    state.carrito.items.reduce((acc, item) => acc + item.cantidad, 0)
-  );
 
   return (
     <>
-      {!esAdmin && <CarritoIcono totalItems={totalItems} />}
+      {!esAdmin && <CarritoIcono />}
       {usuario ? (
         <>
           <Link to="/perfil" style={{ color: "var(--neutral)" }}>

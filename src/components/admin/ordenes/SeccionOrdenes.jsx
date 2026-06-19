@@ -1,4 +1,5 @@
-﻿import { useDispatch, useSelector } from "react-redux";
+﻿import { useMemo } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { setFiltroOrdenesAdmin } from "@/redux/adminUISlice";
 import usePedidosAdmin from "../../../hooks/usePedidosAdmin";
 import { ORDEN_ESTADO_LABEL } from "../../../utils/pedidoUtils";
@@ -13,6 +14,14 @@ const SeccionOrdenes = () => {
   const pedidosFiltrados = filtroEstado === "TODOS"
     ? pedidos
     : pedidos.filter((p) => p.status === filtroEstado);
+
+  const conteosPorEstado = useMemo(
+    () => Object.keys(ORDEN_ESTADO_LABEL).reduce((acc, est) => {
+      acc[est] = pedidos.filter((p) => p.status === est).length;
+      return acc;
+    }, {}),
+    [pedidos]
+  );
 
   return (
     <>
@@ -32,7 +41,7 @@ const SeccionOrdenes = () => {
             {est === "TODOS" ? "Todos" : ORDEN_ESTADO_LABEL[est]}
             {est !== "TODOS" && (
               <span style={{ marginLeft: "6px", opacity: 0.7 }}>
-                ({pedidos.filter((p) => p.status === est).length})
+                ({conteosPorEstado[est] ?? 0})
               </span>
             )}
           </button>

@@ -3,23 +3,22 @@ import { uploadImagen } from "../services/cloudinaryService";
 
 export const uploadImagenThunk = createAsyncThunk(
   "galeria/upload",
-  async (file, { rejectWithValue }) => {
-    try { return await uploadImagen(file); }
-    catch (err) { return rejectWithValue(err.message); }
-  }
+  (file, { rejectWithValue }) =>
+    uploadImagen(file).catch((err) => rejectWithValue(err.message))
 );
 
 const galeriaSlice = createSlice({
   name: "galeria",
   initialState: {
     subiendo: false,
+    error:    null,
   },
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(uploadImagenThunk.pending,   (state) => { state.subiendo = true; })
-      .addCase(uploadImagenThunk.fulfilled, (state) => { state.subiendo = false; })
-      .addCase(uploadImagenThunk.rejected,  (state) => { state.subiendo = false; });
+      .addCase(uploadImagenThunk.pending,   (state) => { state.subiendo = true;  state.error = null; })
+      .addCase(uploadImagenThunk.fulfilled, (state) => { state.subiendo = false; state.error = null; })
+      .addCase(uploadImagenThunk.rejected,  (state, action) => { state.subiendo = false; state.error = action.payload ?? "Error al subir la imagen"; });
   },
 });
 

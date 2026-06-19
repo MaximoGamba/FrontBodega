@@ -2,7 +2,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { setPaginaAdmin } from "@/redux/adminUISlice";
 import useVinosAdmin from "../../../hooks/useVinosAdmin";
-import { estaActivo } from "../../../services/vinosService";
+import { estaActivo } from "../../../utils/productosSort";
 import EstadoCarga from "../../shared/EstadoCarga";
 import Boton from "../../shared/Boton";
 import BotonToggle from "./BotonToggle";
@@ -18,7 +18,11 @@ const TablaProductos = ({ onEditar }) => {
     dispatch(setPaginaAdmin(1));
   }, [dispatch]);
 
-  const totalPaginas    = Math.ceil(productos.length / ITEMS_POR_PAGINA);
+  const totalPaginas = Math.ceil(productos.length / ITEMS_POR_PAGINA);
+
+  useEffect(() => {
+    if (totalPaginas > 0 && pagina > totalPaginas) dispatch(setPaginaAdmin(1));
+  }, [dispatch, pagina, totalPaginas]);
   const productosPagina = productos.slice((pagina - 1) * ITEMS_POR_PAGINA, pagina * ITEMS_POR_PAGINA);
 
   return (

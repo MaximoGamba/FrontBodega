@@ -53,68 +53,60 @@ export const selectVinosFiltrados = createSelector(
 // ─── Thunks ──────────────────────────────────────────────────────────────────
 export const getVinos = createAsyncThunk(
   "vinos/getAll",
-  async (_, { rejectWithValue }) => {
-    try { return await fetchVinos(); }
-    catch (err) { return rejectWithValue(err.message); }
-  }
+  (_, { rejectWithValue }) =>
+    fetchVinos().catch((err) => rejectWithValue(err.message))
 );
 
 export const getVinosAdmin = createAsyncThunk(
   "vinos/getAllAdmin",
-  async (_, { rejectWithValue }) => {
-    try { return await fetchVinosAdmin(); }
-    catch (err) { return rejectWithValue(err.message); }
-  }
+  (_, { rejectWithValue }) =>
+    fetchVinosAdmin().catch((err) => rejectWithValue(err.message))
 );
 
 export const getVinoById = createAsyncThunk(
   "vinos/getById",
-  async (id, { rejectWithValue }) => {
-    try { return await fetchVinoById(id); }
-    catch (err) { return rejectWithValue(err.message); }
-  }
+  (id, { rejectWithValue }) =>
+    fetchVinoById(id).catch((err) => rejectWithValue(err.message))
 );
 
 export const postVino = createAsyncThunk(
   "vinos/post",
-  async (datos, { rejectWithValue }) => {
-    try { return await crearVino(datos); }
-    catch (err) { return rejectWithValue(err.message); }
-  }
+  (datos, { rejectWithValue }) =>
+    crearVino(datos).catch((err) => rejectWithValue(err.message))
 );
 
 export const putVino = createAsyncThunk(
   "vinos/put",
-  async ({ id, datos }, { rejectWithValue }) => {
-    try { return await actualizarVino(id, datos); }
-    catch (err) { return rejectWithValue(err.message); }
-  }
+  ({ id, datos }, { rejectWithValue }) =>
+    actualizarVino(id, datos).catch((err) => rejectWithValue(err.message))
 );
 
 export const desactivarVino = createAsyncThunk(
   "vinos/desactivar",
-  async (id, { rejectWithValue }) => {
-    try { await desactivarVinoAPI(id); return id; }
-    catch (err) { return rejectWithValue(err.message); }
-  }
+  (id, { rejectWithValue }) =>
+    desactivarVinoAPI(id)
+      .then(() => id)
+      .catch((err) => rejectWithValue(err.message))
 );
 
 export const reactivarVino = createAsyncThunk(
   "vinos/reactivar",
-  async (id, { rejectWithValue }) => {
-    try { await reactivarVinoAPI(id); return id; }
-    catch (err) { return rejectWithValue(err.message); }
-  }
+  (id, { rejectWithValue }) =>
+    reactivarVinoAPI(id)
+      .then(() => id)
+      .catch((err) => rejectWithValue(err.message))
 );
 
 // ─── Slice ───────────────────────────────────────────────────────────────────
 const vinosSlice = createSlice({
   name: "vinos",
   initialState: {
-    public:        vinosPublicAdapter.getInitialState({ status: "idle", error: null, statusAt: null }),
-    admin:         vinosAdminAdapter.getInitialState({ status: "idle", error: null, statusAt: null }),
-    loadingActual: false,
-    errorActual:   null,
+    public:          vinosPublicAdapter.getInitialState({ status: "idle", error: null, statusAt: null }),
+    admin:           vinosAdminAdapter.getInitialState({ status: "idle", error: null, statusAt: null }),
+    loadingActual:   false,
+    errorActual:     null,
+    loadingMutacion: false,
+    errorMutacion:   null,
   },
   reducers: {},
   extraReducers: (builder) => {
@@ -142,14 +134,19 @@ const vinosSlice = createSlice({
       })
       .addCase(getVinoById.rejected,  (state, action) => { state.loadingActual = false; state.errorActual = action.payload; })
 
+      .addCase(postVino.pending,   (state) => { state.loadingMutacion = true;  state.errorMutacion = null; })
       .addCase(postVino.fulfilled, (state, action) => {
+        state.loadingMutacion = false;
         vinosAdminAdapter.addOne(state.admin, action.payload);
         if (action.payload.active !== false) {
           vinosPublicAdapter.addOne(state.public, action.payload);
         }
       })
+      .addCase(postVino.rejected,  (state, action) => { state.loadingMutacion = false; state.errorMutacion = action.payload; })
 
+      .addCase(putVino.pending,   (state) => { state.loadingMutacion = true;  state.errorMutacion = null; })
       .addCase(putVino.fulfilled, (state, action) => {
+        state.loadingMutacion = false;
         vinosAdminAdapter.upsertOne(state.admin, action.payload);
         if (action.payload.active !== false) {
           vinosPublicAdapter.upsertOne(state.public, action.payload);
@@ -157,17 +154,24 @@ const vinosSlice = createSlice({
           vinosPublicAdapter.removeOne(state.public, action.payload.id);
         }
       })
+      .addCase(putVino.rejected,  (state, action) => { state.loadingMutacion = false; state.errorMutacion = action.payload; })
 
+      .addCase(desactivarVino.pending,   (state) => { state.loadingMutacion = true;  state.errorMutacion = null; })
       .addCase(desactivarVino.fulfilled, (state, action) => {
+        state.loadingMutacion = false;
         vinosAdminAdapter.updateOne(state.admin, { id: action.payload, changes: { active: false } });
         vinosPublicAdapter.removeOne(state.public, action.payload);
       })
+      .addCase(desactivarVino.rejected,  (state, action) => { state.loadingMutacion = false; state.errorMutacion = action.payload; })
 
+      .addCase(reactivarVino.pending,   (state) => { state.loadingMutacion = true;  state.errorMutacion = null; })
       .addCase(reactivarVino.fulfilled, (state, action) => {
+        state.loadingMutacion = false;
         vinosAdminAdapter.updateOne(state.admin, { id: action.payload, changes: { active: true } });
         const vino = state.admin.entities[action.payload];
         if (vino) vinosPublicAdapter.upsertOne(state.public, { ...vino, active: true });
-      });
+      })
+      .addCase(reactivarVino.rejected,  (state, action) => { state.loadingMutacion = false; state.errorMutacion = action.payload; });
   },
 });
 

@@ -3,21 +3,19 @@ import { fetchColores, fetchCepas, fetchAzucares, fetchCrianzas, fetchElaboracio
 
 export const getCatalogos = createAsyncThunk(
   "catalogos/getAll",
-  async (_, { rejectWithValue }) => {
-    try {
-      const [colores, cepas, azucares, crianzas, elaboraciones, medidas] = await Promise.all([
-        fetchColores(),
-        fetchCepas(),
-        fetchAzucares(),
-        fetchCrianzas(),
-        fetchElaboraciones(),
-        fetchMedidas(),
-      ]);
-      return { colores, cepas, azucares, crianzas, elaboraciones, medidas };
-    } catch (err) {
-      return rejectWithValue(err.message);
-    }
-  }
+  (_, { rejectWithValue }) =>
+    Promise.all([
+      fetchColores(),
+      fetchCepas(),
+      fetchAzucares(),
+      fetchCrianzas(),
+      fetchElaboraciones(),
+      fetchMedidas(),
+    ])
+      .then(([colores, cepas, azucares, crianzas, elaboraciones, medidas]) => ({
+        colores, cepas, azucares, crianzas, elaboraciones, medidas,
+      }))
+      .catch((err) => rejectWithValue(err.message))
 );
 
 const catalogosSlice = createSlice({

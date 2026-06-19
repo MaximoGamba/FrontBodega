@@ -1,24 +1,29 @@
-﻿import { useState } from "react";
+﻿import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { LuArrowRight } from "react-icons/lu";
 import { validarEmail } from "../../utils/validators";
-import { suscribirNewsletter } from "@/redux/usuarioSlice";
+import { suscribirNewsletter } from "@/redux/usersSlice";
 
 const FooterNewsletter = () => {
   const dispatch = useDispatch();
-  const yaSuscripto = useSelector((state) => state.usuario.newsletterSuscripto);
+  const yaSuscripto = useSelector((state) => state.users.newsletterSuscripto);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [exito, setExito] = useState(false);
+
+  useEffect(() => {
+    if (!exito) return;
+    const id = setTimeout(() => setExito(false), 3000);
+    return () => clearTimeout(id);
+  }, [exito]);
 
   const handleSuscribir = () => {
     setError(""); setExito(false);
     if (!email.trim()) { setError("Ingresá tu email."); return; }
     if (!validarEmail(email)) { setError("El email no es válido."); return; }
-    dispatch(suscribirNewsletter(email));
+    dispatch(suscribirNewsletter());
     setExito(true);
     setEmail("");
-    setTimeout(() => setExito(false), 3000);
   };
 
   return (

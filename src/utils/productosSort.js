@@ -1,6 +1,8 @@
 import { calcularPrecioFinal } from "./formatters";
 
-export const sortProductos = (productos) =>
+export const estaActivo = (producto) => producto.active !== false;
+
+export const sortProductosAdmin = (productos) =>
   [...productos].sort((a, b) => {
     if (a.active === b.active) return b.id - a.id;
     return a.active === false ? 1 : -1;

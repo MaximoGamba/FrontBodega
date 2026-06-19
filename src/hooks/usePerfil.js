@@ -1,17 +1,20 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getUsuario, getPedidosUsuario } from "@/redux/usuarioSlice";
+import { getUsuario } from "@/redux/usersSlice";
+import { getPedidosUsuario } from "@/redux/pedidosSlice";
+import { ROL_ADMIN } from "@/utils/roles";
 
 const PERFIL_TTL = 5 * 60 * 1000;
 
-const usePerfil = (userId, esAdmin) => {
+const usePerfil = (userId) => {
   const dispatch = useDispatch();
-  const datos         = useSelector((state) => state.usuario.datos);
-  const status        = useSelector((state) => state.usuario.statusDatos);
-  const statusAt      = useSelector((state) => state.usuario.statusAt);
-  // usuarioSlice.pedidos = historial del usuario logueado; pedidosSlice = todos los pedidos (solo admin)
-  const pedidos       = useSelector((state) => state.usuario.pedidos);
-  const statusPedidos = useSelector((state) => state.usuario.statusPedidos);
+  const esAdmin       = useSelector((state) => state.users.usuario?.rol === ROL_ADMIN);
+  const datos         = useSelector((state) => state.users.datos);
+  const status        = useSelector((state) => state.users.statusDatos);
+  const statusAt      = useSelector((state) => state.users.statusAt);
+  const pedidos       = useSelector((state) => state.pedidos.propios.items);
+  const statusPedidos = useSelector((state) => state.pedidos.propios.status);
+  const errorPedidos  = useSelector((state) => state.pedidos.propios.error);
 
   useEffect(() => {
     if (!userId) return;
@@ -26,7 +29,13 @@ const usePerfil = (userId, esAdmin) => {
     dispatch(getPedidosUsuario(userId));
   }, [dispatch, userId, esAdmin, statusPedidos]);
 
-  return { perfil: datos, pedidos, cargando: status === "loading" };
+  return {
+    perfil:          datos,
+    pedidos,
+    cargando:        status === "loading",
+    cargandoPedidos: statusPedidos === "loading",
+    errorPedidos:    statusPedidos === "failed" ? errorPedidos : null,
+  };
 };
 
 export default usePerfil;
