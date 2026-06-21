@@ -103,8 +103,8 @@ const vinosSlice = createSlice({
   initialState: {
     public:          vinosPublicAdapter.getInitialState({ status: "idle", error: null, statusAt: null }),
     admin:           vinosAdminAdapter.getInitialState({ status: "idle", error: null, statusAt: null }),
-    loadingActual:   false,
-    errorActual:     null,
+    statusActual: "idle",
+    errorActual:  null,
     loadingMutacion: false,
     errorMutacion:   null,
   },
@@ -127,12 +127,12 @@ const vinosSlice = createSlice({
       })
       .addCase(getVinosAdmin.rejected,  (state, action) => { state.admin.status = "failed"; state.admin.error = action.payload; })
 
-      .addCase(getVinoById.pending,   (state) => { state.loadingActual = true;  state.errorActual = null; })
+      .addCase(getVinoById.pending,   (state) => { state.statusActual = "loading";   state.errorActual = null; })
       .addCase(getVinoById.fulfilled, (state, action) => {
-        state.loadingActual = false;
+        state.statusActual = "succeeded";
         vinosPublicAdapter.upsertOne(state.public, action.payload);
       })
-      .addCase(getVinoById.rejected,  (state, action) => { state.loadingActual = false; state.errorActual = action.payload; })
+      .addCase(getVinoById.rejected,  (state, action) => { state.statusActual = "failed"; state.errorActual = action.payload; })
 
       .addCase(postVino.pending,   (state) => { state.loadingMutacion = true;  state.errorMutacion = null; })
       .addCase(postVino.fulfilled, (state, action) => {

@@ -13,8 +13,18 @@ const btnCantidad = {
   justifyContent: "center",
 };
 
+const TrashIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6l-1 14H6L5 6" />
+    <path d="M10 11v6" /><path d="M14 11v6" />
+    <path d="M9 6V4h6v2" />
+  </svg>
+);
+
 const CartItem = ({ item, onCambiarCantidad, onEliminar }) => {
-  const precioFinal = calcularPrecioFinal(item.price, item.discountPercent);
+  const precioFinal    = calcularPrecioFinal(item.price, item.discountPercent);
+  const enLimiteStock  = item.cantidad >= item.stock;
 
   return (
     <div
@@ -41,11 +51,24 @@ const CartItem = ({ item, onCambiarCantidad, onEliminar }) => {
         </p>
 
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <button onClick={() => onCambiarCantidad(item.id, -1)} style={btnCantidad}>−</button>
+          <button
+            onClick={() => onCambiarCantidad(item.id, -1)}
+            style={{ ...btnCantidad, color: item.cantidad === 1 ? "var(--primary)" : "inherit" }}
+            title={item.cantidad === 1 ? "Quitar del carrito" : "Disminuir cantidad"}
+          >
+            {item.cantidad === 1 ? <TrashIcon /> : "−"}
+          </button>
           <span style={{ fontSize: "15px", minWidth: "20px", textAlign: "center" }}>
             {item.cantidad}
           </span>
-          <button onClick={() => onCambiarCantidad(item.id, 1)} style={btnCantidad}>+</button>
+          <button
+            onClick={() => onCambiarCantidad(item.id, 1)}
+            disabled={enLimiteStock}
+            style={{ ...btnCantidad, opacity: enLimiteStock ? 0.4 : 1, cursor: enLimiteStock ? "not-allowed" : "pointer" }}
+            title={enLimiteStock ? "Stock máximo alcanzado" : "Aumentar cantidad"}
+          >
+            +
+          </button>
           <button
             onClick={() => onEliminar(item.id)}
             style={{ background: "none", border: "none", color: "var(--gray)", fontSize: "12px", letterSpacing: "1px", textTransform: "uppercase", cursor: "pointer", marginLeft: "8px" }}

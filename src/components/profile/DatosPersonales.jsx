@@ -2,11 +2,13 @@
 import CambiarPassword from "./CambiarPassword";
 import { labelStyle } from "../../styles/profileStyles";
 
-const DatosPersonales = ({ perfil, cargando, userId, onLogout }) => (
+const DatosPersonales = ({ perfil, cargando, error, userId, onLogout }) => (
   <div>
     <div style={{ border: "1px solid var(--border)", padding: "28px", marginBottom: "16px" }}>
       {cargando ? (
         <p style={{ color: "var(--gray)", fontSize: "14px" }}>Cargando datos...</p>
+      ) : error ? (
+        <p style={{ color: "var(--primary)", fontSize: "14px" }}>{error}</p>
       ) : !perfil ? (
         <p style={{ color: "var(--primary)", fontSize: "14px" }}>
           No se pudieron cargar los datos. Cerrá sesión e ingresá nuevamente.

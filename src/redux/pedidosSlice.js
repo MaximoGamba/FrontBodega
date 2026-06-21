@@ -52,10 +52,10 @@ export const procesarCheckout = createAsyncThunk(
     let pedidoId;
     try {
       const orden = await crearPedido(items);
-      if (!orden?.id) return rejectWithValue("No se pudo crear el pedido");
+      if (!orden?.id) return rejectWithValue({ message: "No se pudo crear el pedido", pedidoId: null });
       pedidoId = orden.id;
     } catch (err) {
-      return rejectWithValue(err.message ?? "Error al procesar el pedido");
+      return rejectWithValue({ message: err.message ?? "Error al procesar el pedido", pedidoId: null });
     }
 
     // Fase 2: envío + pago (con cancelación best-effort si fallan)
@@ -64,8 +64,12 @@ export const procesarCheckout = createAsyncThunk(
       await crearPago(pedidoId, subtotal, pago.metodo.toUpperCase());
       if (pago.metodo === "tarjeta") await actualizarEstadoPedido(pedidoId, "PAID");
     } catch (err) {
-      await actualizarEstadoPedido(pedidoId, "CANCELLED").catch(() => {});
-      return rejectWithValue(err.message ?? "Error al procesar el pedido");
+      let rollbackFallido = false;
+      await actualizarEstadoPedido(pedidoId, "CANCELLED").catch(() => { rollbackFallido = true; });
+      return rejectWithValue({
+        message:  err.message ?? "Error al procesar el pedido",
+        pedidoId: rollbackFallido ? pedidoId : null,
+      });
     }
 
     dispatch(vaciarCarrito());
@@ -90,8 +94,9 @@ const pedidosSlice = createSlice({
       error:  null,
     },
     creacion: {
-      loading: false,
-      error:   null,
+      loading:         false,
+      error:           null,
+      pedidoIdFallido: null,
     },
   },
   reducers: {},
@@ -119,12 +124,18 @@ const pedidosSlice = createSlice({
       .addCase(getPedidosUsuario.rejected,  (state, action) => { state.propios.status = "failed"; state.propios.error = action.payload ?? "Error al cargar pedidos"; })
 
       // ── creacion ───────────────────────────────────────────────────────────
-      .addCase(procesarCheckout.pending,   (state) => { state.creacion.loading = true;  state.creacion.error = null; })
+      .addCase(procesarCheckout.pending,   (state) => { state.creacion.loading = true;  state.creacion.error = null; state.creacion.pedidoIdFallido = null; })
       .addCase(procesarCheckout.fulfilled, (state) => {
-        state.creacion.loading = false;
-        state.propios.status   = "idle"; // invalidar para que se refetchee el historial
+        state.creacion.loading         = false;
+        state.creacion.pedidoIdFallido = null;
+        state.propios.status           = "idle"; // invalidar para que se refetchee el historial
       })
-      .addCase(procesarCheckout.rejected,  (state, action) => { state.creacion.loading = false; state.creacion.error = action.payload ?? "Error al procesar el pedido"; })
+      .addCase(procesarCheckout.rejected,  (state, action) => {
+        const { message, pedidoId } = action.payload ?? {};
+        state.creacion.loading         = false;
+        state.creacion.error           = message ?? "Error al procesar el pedido";
+        state.creacion.pedidoIdFallido = pedidoId ?? null;
+      })
 
       // ── logout ─────────────────────────────────────────────────────────────
       .addCase(logout, (state) => {
@@ -136,8 +147,9 @@ const pedidosSlice = createSlice({
         state.propios.items         = [];
         state.propios.status        = "idle";
         state.propios.error         = null;
-        state.creacion.loading      = false;
-        state.creacion.error        = null;
+        state.creacion.loading         = false;
+        state.creacion.error           = null;
+        state.creacion.pedidoIdFallido = null;
       });
   },
 });

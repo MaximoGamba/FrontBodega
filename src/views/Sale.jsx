@@ -20,7 +20,7 @@ const Sale = () => {
         <div>
           <h1 style={{ fontFamily: "var(--font-serif)", fontSize: "36px", marginBottom: "8px" }}>Ofertas</h1>
           <p style={{ fontSize: "13px", color: "var(--gray)" }}>
-            {cargando ? "Cargando..." : `${enOferta.length} productos con descuento`}
+            {cargando ? "Cargando..." : error ? "—" : `${enOferta.length} productos con descuento`}
           </p>
         </div>
         <select

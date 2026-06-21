@@ -15,7 +15,7 @@ const Checkout = () => {
   const dispatch = useDispatch();
   const usuario  = useSelector((state) => state.users.usuario);
   const carrito  = useSelector((state) => state.carrito.items);
-  const { paso, pedidoId, envio, pago }           = useSelector((state) => state.checkout);
+  const { paso, pedidoId, envio, pago, exitoso }  = useSelector((state) => state.checkout);
   const { loading: enviando, error: errorBackend } = useSelector((state) => state.pedidos.creacion);
 
   const [errorEnvio, setErrorEnvio] = useState("");
@@ -24,7 +24,7 @@ const Checkout = () => {
   useEffect(() => { return () => { dispatch(resetCheckout()); }; }, [dispatch]);
 
   if (usuario?.rol === ROL_ADMIN) return <Navigate to="/" replace />;
-  if (carrito.length === 0) return <Navigate to="/carrito" replace />;
+  if (carrito.length === 0 && !exitoso) return <Navigate to="/carrito" replace />;
 
   const subtotal = calcularSubtotal(carrito);
 

@@ -14,7 +14,8 @@ const carritoSlice = createSlice({
         const nueva = Math.min(existente.cantidad + cantidad, producto.stock);
         if (nueva !== existente.cantidad) existente.cantidad = nueva;
       } else {
-        state.items.push({ ...producto, cantidad: Math.min(cantidad, producto.stock) });
+        const cantidadFinal = Math.min(cantidad, producto.stock);
+        if (cantidadFinal > 0) state.items.push({ ...producto, cantidad: cantidadFinal });
       }
     },
     quitarItem: (state, action) => {

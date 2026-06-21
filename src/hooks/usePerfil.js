@@ -12,6 +12,7 @@ const usePerfil = (userId) => {
   const datos         = useSelector((state) => state.users.datos);
   const status        = useSelector((state) => state.users.statusDatos);
   const statusAt      = useSelector((state) => state.users.statusAt);
+  const errorDatos    = useSelector((state) => state.users.errorDatos);
   const pedidos       = useSelector((state) => state.pedidos.propios.items);
   const statusPedidos = useSelector((state) => state.pedidos.propios.status);
   const errorPedidos  = useSelector((state) => state.pedidos.propios.error);
@@ -35,6 +36,7 @@ const usePerfil = (userId) => {
     cargando:        status === "loading",
     cargandoPedidos: statusPedidos === "loading",
     errorPedidos:    statusPedidos === "failed" ? errorPedidos : null,
+    errorPerfil:     status === "failed" ? errorDatos : null,
   };
 };
 

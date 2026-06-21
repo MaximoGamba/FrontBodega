@@ -30,34 +30,42 @@ src/
 │
 ├── redux/                → Todo el estado global de la app (Redux Toolkit)
 │   │
-│   ├── store.js          → Configura el store con los 10 slices. Define qué se persiste en localStorage.
-│   │                        El objeto storage (adapter inline) va declarado después de todos los imports
-│   │                        para respetar las reglas de módulos ES
+│   ├── store.js          → Configura el store con los 9 slices. Dos adapters de storage inline:
+│   │                        localStorageAdapter persiste "users" (sesión JWT) entre cierres del navegador.
+│   │                        sessionStorageAdapter persiste "carrito" (sobrevive F5 pero se vacía al cerrar pestaña).
+│   │                        Al logout despacha persistor.purge() para limpiar localStorage
 │   ├── api.js            → Instancia Axios compartida + injectStore para romper dependencia circular.
 │   │                        Interceptor de request: agrega JWT y verifica expiración con tokenExpirado().
 │   │                        Interceptor de response: desenvuelve .data, maneja 401 con logout automático
 │   │
 │   │   ── Slices de dominio (datos del servidor) ──
-│   ├── authSlice.js      → Sesión: usuario logueado + JWT token. Thunks: login, registro. Persiste en localStorage
+│   ├── usersSlice.js     → Unifica sesión y perfil en un solo slice. Auth: token, usuario {id, rol}, thunks loginThunk
+│   │                        y registrarThunk. Perfil: datos completos, statusDatos, newsletterSuscripto, thunks
+│   │                        getUsuario y putUsuario. logout limpia todo. Persiste en localStorage vía rootPersistConfig
 │   ├── vinosSlice.js     → Catálogo de vinos. Dos EntityAdapters: público (clientes) y admin.
 │   │                        7 thunks CRUD. Selector memoizado selectVinosFiltrados (filtros + búsqueda + orden).
-│   │                        TTL con statusAt. loadingMutacion/errorMutacion rastrean pending/rejected de
-│   │                        postVino y putVino. putVino.fulfilled remueve del adapter público si el vino está inactivo
+│   │                        TTL con statusAt. getVinoById usa statusActual: "idle"/"loading"/"succeeded"/"failed".
+│   │                        loadingMutacion/errorMutacion rastrean pending/rejected de postVino y putVino.
+│   │                        putVino.fulfilled remueve del adapter público si el vino está inactivo
 │   ├── catalogosSlice.js → 6 arrays de opciones: colores, cepas, azúcares, crianzas, elaboraciones, medidas.
 │   │                        Cargados en paralelo con Promise.all. TTL con statusAt
-│   ├── pedidosSlice.js   → Pedidos para el panel admin. EntityAdapter. Escucha logout para limpiar datos. TTL
-│   ├── usuarioSlice.js   → Datos de perfil + historial de pedidos del usuario logueado.
-│   │                        statusDatos ("idle"/"loading"/"succeeded"/"failed") reemplaza al boolean loading.
-│   │                        newsletterSuscripto indica si el usuario ya se suscribió al newsletter.
-│   │                        Todo se limpia en logout (incluido newsletterSuscripto y statusDatos → "idle")
-│   ├── carritoSlice.js   → Items del carrito. Controla stock máximo. Se vacía en logout. Persiste en localStorage
-│   ├── checkoutSlice.js  → Wizard de compra: formularios de envío y pago, paso actual, estado del proceso.
-│   │                        Thunk procesarCheckout: orquesta crearPedido → crearEnvio → crearPago con rollback
+│   ├── pedidosSlice.js   → Tres ámbitos: admin (EntityAdapter + TTL 5 min), propios (historial del usuario logueado),
+│   │                        creacion (loading/error/pedidoIdFallido). procesarCheckout orquesta crearPedido →
+│   │                        crearEnvio → crearPago; si falla la fase 2 cancela el pedido (rollback best-effort);
+│   │                        si el rollback también falla, pedidoIdFallido queda en el estado para recuperarlo.
+│   │                        Escucha logout para limpiar los tres subestados
+│   ├── carritoSlice.js   → Items del carrito. agregarItem no pushea si cantidadFinal <= 0 (guard contra stock=0).
+│   │                        cambiarCantidad controla límite de stock y filtra cantidad <= 0. Se vacía en logout.
+│   │                        Persiste en sessionStorage
+│   ├── checkoutSlice.js  → Estado del wizard: pedidoId, paso actual (0-2), exitoso, formularios envío y pago.
+│   │                        Escucha procesarCheckout.fulfilled (de pedidosSlice) para avanzar al paso final.
+│   │                        resetCheckout limpia todo al desmontar Checkout.jsx
 │   ├── galeriaSlice.js   → Estado de upload de imágenes a Cloudinary. Rastrea subiendo: boolean y error: string|null
 │   │
 │   │   ── Slices de UI (estado de pantalla, sin datos del servidor) ──
 │   ├── catalogoUISlice.js → Filtros del catálogo (checkboxes, rango de precio), búsqueda, orden. Constante PRECIO_MAX
-│   └── adminUISlice.js    → Tab activo en admin (productos/órdenes), id del producto en edición, visibilidad del form.
+│   └── adminUISlice.js    → Tab activo en admin (productos/órdenes), filtroOrdenesAdmin (estado de filtro "TODOS"/estado),
+│                             id del producto en edición, visibilidad del form.
 │                             ordenesExpandidas (array de IDs de pedidos expandidos). toggleOrdenExpandida para FilaOrden
 │
 ├── services/             → Capa de acceso a la API. Funciones async puras, sin Redux. Una por microservicio
@@ -75,27 +83,30 @@ src/
 ├── hooks/                → Mediadores entre Redux y los componentes. Encapsulan "cuándo y cómo pedir datos"
 │   ├── useVinos.js       → Carga el catálogo público. Patrón TTL: refetch automático si los datos tienen +5 min
 │   ├── useVinosAdmin.js  → Igual que useVinos pero para la colección admin (incluye inactivos). TTL 5 min
-│   ├── useVino.js        → Carga un vino por ID. Solo fetcha si no está ya en el adapter (cache local)
+│   ├── useVino.js        → Carga un vino por ID. Solo fetcha si no está ya en el adapter (cache local).
+│   │                        cargando se deriva de statusActual: cubre deep link, navegación A→B y fallo de red
 │   ├── useCatalogos.js   → Carga los 6 catálogos. TTL 5 min. useMemo para estabilizar referencia del objeto
 │   │                        y evitar re-renders en cascada en formularios que dependen de las opciones
 │   ├── usePedidosAdmin.js → Carga pedidos del panel admin. TTL 5 min
 │   ├── usePerfil.js      → Carga datos de perfil y pedidos del usuario. Dos efectos separados:
 │   │                        perfil solo si statusDatos === "idle" (evita refetch redundante en cada mount),
 │   │                        pedidos solo si statusPedidos === "idle" y no es admin.
-│   │                        esAdmin se deriva internamente desde state.auth.usuario?.rol (no recibe parámetro).
-│   │                        Retorna cargando: statusDatos === "loading", consistente con todos los demás hooks
+│   │                        esAdmin se deriva internamente desde state.users.usuario?.rol (no recibe parámetro).
+│   │                        Retorna { perfil, pedidos, cargando, errorPerfil, cargandoPedidos, errorPedidos }
 │   ├── useProductCard.js → Combina: precio final con descuento, cantidad en carrito, si hay stock disponible,
 │   │                        y la función de agregar al carrito. Usado por ProductCard
 │   └── useAgregarAlCarrito.js → Verifica si el usuario está logueado antes de agregar. Redirige a /login si no
 │
 ├── views/                → Páginas completas. Capa delgada: componen componentes y conectan Redux vía hooks
-│   ├── Home.jsx          → Landing: HeroSection + DestacadosSection + HistoriaBanner + ServiciosSection
+│   ├── Home.jsx          → Landing: HeroSection + DestacadosSection (envuelta en EstadoCarga con cargando/error
+│   │                        de useVinos) + HistoriaBanner + ServiciosSection
 │   ├── Products.jsx      → Catálogo con filtros laterales, buscador y ordenamiento
 │   ├── ProductDetail.jsx → Detalle de un vino: ImagenProducto, info, acciones y productos similares
 │   ├── Cart.jsx          → Carrito de compras con resumen y botón a checkout
 │   ├── Checkout.jsx      → Wizard de 3 pasos: Envío → Pago → Confirmación. Valida cada paso antes de avanzar.
 │   │                        Limpia el estado de checkout al desmontar (resetCheckout en useEffect cleanup)
-│   ├── Sale.jsx          → Catálogo filtrado solo a productos con descuento activo
+│   ├── Sale.jsx          → Catálogo filtrado solo a productos con descuento activo. Subtítulo maneja tres
+│   │                        estados: "Cargando..." / "—" si hay error / conteo real si cargó bien
 │   ├── Historia.jsx      → Página estática con la historia de la bodega (datos de data/historia.js)
 │   ├── Contacto.jsx      → Página estática con info de contacto (datos de data/contacto.js)
 │   ├── Login.jsx         → Formulario de login con manejo de errores del slice
@@ -162,7 +173,9 @@ src/
     │   └── FiltroRangoPrecio.jsx   → Dos sliders de rango de precio (min/max) con PRECIO_MAX importado
     │
     ├── cart/
-    │   ├── CartItem.jsx            → Fila de un item del carrito: imagen, nombre, controles de cantidad, eliminar
+    │   ├── CartItem.jsx            → Fila de un item del carrito: imagen, nombre, controles de cantidad
+│   │                              ('+' deshabilitado si cantidad >= stock; '−' muestra ícono de tacho si
+│   │                              cantidad === 1 para señalar que eliminará el item), eliminar
     │   └── ResumenCarrito.jsx      → Panel lateral del carrito con subtotal y link al checkout
     │
     ├── checkout/
@@ -173,7 +186,7 @@ src/
     │   └── ResumenPedido.jsx       → Panel lateral con lista de items y subtotal durante el checkout
     │
     ├── auth/
-    │   ├── LoginForm.jsx           → Formulario de login, muestra error del slice authSlice
+    │   ├── LoginForm.jsx           → Formulario de login, muestra error del slice usersSlice
     │   └── RegisterForm.jsx        → Formulario de registro con campos completos
     │
     ├── profile/
